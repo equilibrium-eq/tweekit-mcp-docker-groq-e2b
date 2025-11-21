@@ -221,3 +221,5 @@ tests/output/*
 .DS_Store
 tests/.DS_Store
 functions/packages/
+.env.local
+.claude/
