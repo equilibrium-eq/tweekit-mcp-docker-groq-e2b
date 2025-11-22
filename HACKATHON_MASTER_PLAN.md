@@ -1026,14 +1026,7 @@ result = sandbox.download_file("output.pdf")
   # E2B Hackathon Submission: TweekIT + Groq Agentic Platform
 
   ## Team
-
-  **Equilibrium (TweekIT)**
-
-  ### Hackathon Team:
-  - **dpoch** - Architecture & Integration
-  - **CG** - Development & Implementation
-  - **Matt B** - VP of Engineering, one of the best engineering leaders in the industry
-  - **jvs** - QA & Product Management zen master
+  Equilibrium (TweekIT)
 
   ## Project Name
   Agentic Workflow Blocker Elimination Platform
@@ -1161,17 +1154,9 @@ result = sandbox.download_file("output.pdf")
 
   ## Team Background
 
-  **Equilibrium** has powered enterprise media workflows since 2000 with MediaRich technology,
+  Equilibrium's MediaRich technology has powered enterprise media workflows since 2000,
   trusted by Fortune 500 companies and major media portals worldwide. TweekIT brings
   this 20+ year proven technology to modern agentic workflows.
-
-  ### Hackathon Team:
-  - **dpoch** - Architecture & Integration
-  - **CG** - Development & Implementation
-  - **Matt B** - VP of Engineering, one of the best engineering leaders in the industry
-  - **jvs** - QA & Product Management zen master
-
-  The team combines deep media processing expertise with modern AI/agent architectures.
 
   ## Links
 
