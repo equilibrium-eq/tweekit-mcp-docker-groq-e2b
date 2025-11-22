@@ -32,7 +32,7 @@ TweekIT MCP Server **eliminates agentic workflow blockers** by providing on-dema
 ## Getting Started
 
 1. **Sign up for TweekIT** at https://www.tweekit.io
-   - Free tier includes 10,000 conversions
+   - Free tier includes 10,000 free API calls within the first 30 days
    - Get your API Key and API Secret from the account portal
 
 2. **Configure credentials** (via environment variables or tool parameters):
@@ -123,7 +123,7 @@ MediaRich Backend (ISO 27001/SAS 70 compliant data centers)
 
 ## Rate Limits & Pricing
 
-- **Free Tier:** 10,000 conversions/month (no credit card required)
+- **Free Tier:** 10,000 free API calls within the first 30 days (no credit card required)
 - **Paid Plans:** Available for higher volume
 - **Details:** https://www.tweekit.io/pricing
 

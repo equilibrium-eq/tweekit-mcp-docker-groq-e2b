@@ -25,7 +25,7 @@ remote:
     ApiKey: "${TWEEKIT_API_KEY}"
     ApiSecret: "${TWEEKIT_API_SECRET}"
 config:
-  description: Configure TweekIT API credentials. Sign up for free at https://www.tweekit.io/ to get your API key and secret (10,000 free conversions included).
+  description: Configure TweekIT API credentials. Sign up for free at https://www.tweekit.io/ to get your API key and secret (10,000 free API calls within the first 30 days).
   secrets:
     - name: tweekit.api_key
       env: TWEEKIT_API_KEY
