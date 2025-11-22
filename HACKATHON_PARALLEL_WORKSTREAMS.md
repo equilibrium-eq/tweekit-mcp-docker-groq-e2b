@@ -447,7 +447,14 @@ if st.button("Process Files"):
 # E2B Hackathon Submission: TweekIT + E2B + Groq
 
 ## Team
-Equilibrium (TweekIT)
+
+**Equilibrium (TweekIT)**
+
+### Hackathon Team:
+- **dpoch** - Architecture & Integration
+- **CG** - Development & Implementation
+- **Matt B** - VP of Engineering, one of the best engineering leaders in the industry
+- **jvs** - QA & Product Management zen master
 
 ## Project Name
 Agentic Workflow Blocker Elimination Platform
@@ -495,7 +502,16 @@ TweekIT MCP Server + E2B Sandbox + Groq Analysis = Complete agentic workflow pla
 - Google Cloud Run (backend)
 
 ## Team Background
-Equilibrium's MediaRich technology has powered enterprise media workflows since 2000, trusted by Fortune 500 companies and major portals worldwide.
+
+**Equilibrium** has powered enterprise media workflows since 2000 with MediaRich technology, trusted by Fortune 500 companies and major media portals worldwide.
+
+### Hackathon Team:
+- **dpoch** - Architecture & Integration
+- **CG** - Development & Implementation
+- **Matt B** - VP of Engineering, one of the best engineering leaders in the industry
+- **jvs** - QA & Product Management zen master
+
+The team combines deep media processing expertise with modern AI/agent architectures.
 ```
 
 #### **Architecture Diagram Elements:**

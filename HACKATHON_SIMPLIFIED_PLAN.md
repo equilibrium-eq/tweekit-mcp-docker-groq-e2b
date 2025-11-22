@@ -218,7 +218,17 @@ User uploads DOC file → Agent fails ❌
 User uploads DOC file → E2B calls TweekIT MCP → Converts to PDF → Agent succeeds ✅
 
 ## Team
-Equilibrium - 20+ years enterprise media processing (MediaRich, DeBabelizer heritage)
+
+**Equilibrium** - 20+ years enterprise media processing (MediaRich, DeBabelizer heritage)
+
+### Hackathon Team:
+- **dpoch** - Architecture & Integration
+- **CG** - Development & Implementation
+- **Matt B** - VP of Engineering, one of the best engineering leaders in the industry
+- **jvs** - QA & Product Management zen master
+
+### Company Background:
+Fortune 500 trusted, powering enterprise media workflows since 2000
 ```
 
 **Done when:** Video uploaded, submission document complete, submitted by 6 PM Saturday
