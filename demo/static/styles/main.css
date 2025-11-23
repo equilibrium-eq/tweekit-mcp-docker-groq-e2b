@@ -657,6 +657,39 @@
             gap: 30px;
         }
 
+        .partner-logos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 16px;
+        }
+
+        .partner-logos a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            transition: transform 0.3s ease, background 0.3s ease, opacity 0.3s ease;
+        }
+
+        .partner-logos a:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.08);
+            opacity: 1;
+        }
+
+        .partner-logo {
+            height: 34px;
+            width: auto;
+            max-width: 160px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+        }
+
         .footer-logos {
             display: flex;
             align-items: center;
@@ -1046,28 +1079,47 @@
 }
 
 .press-grid-item {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(241, 245, 249, 0.92);
     border-radius: 12px;
     padding: 20px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(203, 213, 225, 0.8);
+    color: #0f172a;
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.press-grid-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 36px rgba(15, 23, 42, 0.22);
+}
+
+.press-grid-logo {
+    height: 44px;
+    max-width: 150px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 14px;
+    filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.16));
 }
 
 .press-grid-icon {
     font-size: 36px;
     margin-bottom: 12px;
+    color: #111827;
 }
 
 .press-grid-item strong {
     display: block;
     margin-top: 4px;
+    color: #111827;
 }
 
 .press-grid-item span {
     display: block;
     margin-top: 6px;
     font-size: 12px;
-    color: var(--text-muted);
+    color: rgba(15, 23, 42, 0.7);
 }
 
 .press-note {

@@ -41,7 +41,7 @@ fi
 
 # Deploy to Cloud Run
 gcloud run deploy "$SERVICE_NAME" \
-    --source . \
+    --source demo \
     --project "$PROJECT_ID" \
     --region "$REGION" \
     --platform "$PLATFORM" \
