@@ -16,6 +16,7 @@
 | **Nov 21 – 09:00‑18:00** | Implemented E2B sandbox handshake (`GET /mcp` SSE → `initialize` → `notifications/initialized`) and parallel MCP/Groq calls | `scripts/e2b_demo_agent.py` (lines 61‑188) |
 | **Nov 21 – evening** | Moved homepage styling into `/static/styles/main.css` and applied same layout to press release | `demo/static/index.html`, `demo/static/press-release.html`, `demo/static/styles/main.css` |
 | **Nov 22 – 07:00‑10:00** | Added local Markdown fallback (handles `.txt`/text inputs without MCP 500s) and logs unsupported formats | `demo/api.py` (lines 238‑318), `demo/logs/unsupported_formats.log` |
+| **Nov 22 – 10:00** | Swapped to pre-planned fallback (remote MCP endpoint) when Docker Hub PR #750 was still pending review | Workstream 1 (Docker submission) checklist |
 | **Nov 22 – 13:00‑15:00** | Prepared demo deploy script (`demo/deploy.sh`) but *did not run it* before submission window | Script present; no deploy log prior to Nov 23 |
 | **Nov 22 – 19:00 planned** | Internal buffer for submission (based on 9 PM deadline posted in one part of the invite) | `HACKATHON_PARALLEL_WORKSTREAMS.md` header |
 | **Nov 23 – 09:15** | Enabled `direnv`, executed demo deploy: `direnv exec . bash demo/deploy.sh stage --version 1.6.01` → Cloud Run service `stage-00002-qlr` | Deploy log (Nov 23) |
