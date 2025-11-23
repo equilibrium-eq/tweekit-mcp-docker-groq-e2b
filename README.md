@@ -18,7 +18,12 @@
 
 Current version: v1.6.01
 
-> **🤖 Claude Users**: Tired of "unsupported file type" errors? Jump to our [Claude File Format Enabler](#solving-claudes-file-type-limitations) – a browser-based tool that converts 450+ formats (DOC, XLS, PSD, DWG, etc.) into Claude-compatible files in seconds.
+> **Stage Environment (Nov 23, 2025)**  
+> - Demo UI: https://stage-958133016924.us-west1.run.app  
+> - MCP Endpoint: https://tweekit-mcp-stage-958133016924.us-west1.run.app/mcp  
+> - Cloud Run revisions: `stage-00002-qlr`, `tweekit-mcp-stage-00022-8kw`
+
+> **AI Agent & IDE Users:** Built for MCP assistants, IDE connectors (Cursor, Continue, Windsurf, v0), CLI + plugin workflows, and Claude / ChatGPT / Groq integrations. The `convert`, `convert_url`, `doctype`, `fetch`, and `search` tools ship out of the box for 400 + formats.
 
 ## Overview
 
@@ -40,7 +45,7 @@ With TweekIT in your MCP toolset, your agents can:
 - Automatically apply transformations such as cropping, resizing, format conversion, and background changes
 - Pass clean, ready to use assets to the next step in your AI workflow with no manual intervention fixing the constant customer file ingestion failures we are all to familiar with
 
-> **🤖 Claude Users**: See [Solving Claude's File Type Limitations](#solving-claudes-file-type-limitations) for a dedicated guide on using TweekIT to overcome Claude's built-in file format restrictions and our standalone web converter tool.
+> Looking for a Claude-specific walkthrough? See [Solving Claude's File Type Limitations](#solving-claudes-file-type-limitations) for a dedicated guide and the browser-based converter.
 
 ### Example scenario
 

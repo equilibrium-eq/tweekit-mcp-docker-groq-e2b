@@ -1,5 +1,5 @@
-# E2B Hackathon - SIMPLIFIED Plan (Using Existing Demo)
-**Deadline:** Saturday 7PM PST | **Submission Target:** 6PM (1 hour buffer)
+# E2B Hackathon – SIMPLIFIED Plan _(Archived)_
+**Status (Nov 23, 2025):** Stage demo and MCP are deployed; submission deadline was missed. Use this plan for historical context only.
 
 ---
 

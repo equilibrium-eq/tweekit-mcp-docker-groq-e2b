@@ -1,5 +1,5 @@
-# E2B Hackathon - MASTER PLAN
-**Deadline:** Saturday 7PM PST | **Submission Target:** 6PM (1 hour buffer)
+# E2B Hackathon – MASTER PLAN _(Archived)_
+**Status (Nov 23, 2025):** Stage services deployed (`stage-958133016924.us-west1.run.app`, `tweekit-mcp-stage-958133016924.us-west1.run.app/mcp`). Submission window missed; this plan is retained for historical reference only.
 
 ---
 

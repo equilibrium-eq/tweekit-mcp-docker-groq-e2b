@@ -1,5 +1,5 @@
-# E2B Hackathon - Parallel Workstreams
-**Deadline:** Saturday 7PM PST | **Submission Target:** 6PM (1 hour buffer)
+# E2B Hackathon – Parallel Workstreams _(Archived)_
+**Status (Nov 23, 2025):** Stage demo (`stage-958133016924.us-west1.run.app`) and MCP (`tweekit-mcp-stage-958133016924.us-west1.run.app/mcp`) are live. Checklist below preserved for historical record; Workstream 1 PR submitted (#750), Workstream 2 completed, remaining work migrated to action list in project root.
 
 ---
 
