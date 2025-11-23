@@ -255,7 +255,7 @@ async function processFile() {
                 file_base64: base64File.split(',')[1], // Remove data URL prefix
                 filename: selectedFile.name,
                 output_format: outputFormat,
-                use_vision: document.getElementById('useVision')?.checked || false,
+                groq_model: document.getElementById('groqModel')?.value || 'llama-3.2-90b-vision-preview',
                 conversion_mode: conversionMode,
                 page_number: pageNumber
             })
