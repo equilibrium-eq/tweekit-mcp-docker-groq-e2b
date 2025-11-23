@@ -9,8 +9,10 @@ import base64
 import asyncio
 import json
 import traceback
+import logging
 from typing import Optional
 from pathlib import Path
+from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -66,6 +68,7 @@ class ProcessResponse(BaseModel):
     converted_file: Optional[str] = None  # Base64 encoded converted file
     error: Optional[str] = None
     error_details: Optional[str] = None  # Technical details for expandable section
+    error_code: Optional[str] = None
     total_time: Optional[float] = None
 
 
@@ -73,8 +76,31 @@ class ProcessResponse(BaseModel):
 TEXT_LIKE_EXTENSIONS = {
     'readme', 'md', 'markdown', 'rst', 'textile', 'org',
     'log', 'conf', 'config', 'cfg', 'ini', 'yaml', 'yml',
-    'json', 'xml', 'csv', 'tsv', 'sql', 'sh', 'bash', 'zsh'
+    'json', 'xml', 'csv', 'tsv', 'sql', 'sh', 'bash', 'zsh', 'txt'
 }
+
+LOG_DIR = Path(__file__).parent / "logs"
+UNSUPPORTED_FORMAT_LOG = LOG_DIR / "unsupported_formats.log"
+
+logger = logging.getLogger(__name__)
+
+
+def record_unsupported_format(original_ext: str, output_format: str, filename: str):
+    """
+    Persist information about unsupported conversions for future improvements.
+    """
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        entry = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "input_extension": original_ext,
+            "output_format": output_format,
+            "filename": filename,
+        }
+        with UNSUPPORTED_FORMAT_LOG.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception as exc:
+        logger.warning("Failed to record unsupported format: %s", exc)
 
 
 async def report_error_to_discord(filename: str, file_ext: str, error_msg: str, error_details: str):
@@ -83,6 +109,11 @@ async def report_error_to_discord(filename: str, file_ext: str, error_msg: str, 
     Only sends if ERROR_REPORTING_ENABLED=true and DISCORD_WEBHOOK_URL is set
     """
     if not ERROR_REPORTING_ENABLED or not DISCORD_WEBHOOK_URL:
+        logger.debug(
+            "Discord reporting skipped (enabled=%s, webhook=%s)",
+            ERROR_REPORTING_ENABLED,
+            bool(DISCORD_WEBHOOK_URL),
+        )
         return
 
     try:
@@ -106,6 +137,7 @@ async def report_error_to_discord(filename: str, file_ext: str, error_msg: str, 
                 DISCORD_WEBHOOK_URL,
                 json={"embeds": [embed]}
             )
+        logger.info("Reported conversion error to Discord for file=%s (%s)", filename, file_ext)
     except Exception as e:
         # Silent fail - don't let error reporting break the main flow
         print(f"Failed to report error to Discord: {e}")
@@ -168,6 +200,7 @@ async def process_file(request: ProcessRequest):
     """
     import time
     start_time = time.time()
+    error_code: Optional[str] = None
 
     try:
         # Validate credentials
@@ -197,7 +230,17 @@ async def process_file(request: ProcessRequest):
                 # Web preview mode - convert to web-optimized image (first page)
                 output_format = 'png'
                 is_web_optimization = True
+                # Web preview mode - convert to web-optimized image (first page)
+                output_format = 'png'
+                is_web_optimization = True
                 print(f"Converting {original_ext.upper()} to web-optimized PNG (first page)")
+
+        # HACKATHON FIX: Force PDF if MD is requested (since MD extraction is flaky)
+        if output_format == 'md':
+            print(f"NOTICE: Markdown extraction requested but disabled for stability. Forcing PDF.")
+            output_format = 'pdf'
+            is_text_extraction = False # Treat as normal PDF conversion
+            # We will add a note in the analysis later
 
         # Format fallback strategy: try .txt for text-like unrecognized formats
         # This prevents TweekIT errors on formats like .readme, .md, etc.
@@ -208,15 +251,57 @@ async def process_file(request: ProcessRequest):
         # Step 1: Create E2B sandbox and convert via TweekIT MCP
         conversion_start = time.time()
 
-        with Sandbox.create(api_key=E2B_API_KEY, timeout=60) as sandbox:
-            # Install FastMCP and nest_asyncio in sandbox
-            sandbox.run_code("!pip install -q fastmcp nest-asyncio")
+        converted_file = None
+        converted_size = 0
+        conversion_time = 0.0
+        used_local_conversion = False
 
-            # Execute conversion via MCP
-            code = f"""
+        # Local fallback for text-like -> markdown conversions to avoid MediaRich 500s
+        target_lower = output_format.lower()
+        print(f"DEBUG: Evaluating local fallback - ext={original_ext}, target={target_lower}, convert_mode={request.conversion_mode}, text_like={original_ext in TEXT_LIKE_EXTENSIONS}")
+        if original_ext in TEXT_LIKE_EXTENSIONS and target_lower in {"md", "markdown"}:
+            print(f"INFO: Using local fallback for {original_ext}->{output_format} conversion")
+            decoded_bytes = base64.b64decode(request.file_base64)
+            try:
+                converted_text = decoded_bytes.decode("utf-8")
+            except UnicodeDecodeError:
+                converted_text = decoded_bytes.decode("utf-8", errors="replace")
+            converted_bytes = converted_text.encode("utf-8")
+            converted_file = base64.b64encode(converted_bytes).decode()
+            converted_size = len(converted_bytes)
+            conversion_time = time.time() - conversion_start
+            is_text_extraction = True
+            used_local_conversion = True
+
+        if not used_local_conversion:
+            with Sandbox.create(api_key=E2B_API_KEY, timeout=120) as sandbox:
+                # Install FastMCP and nest_asyncio in sandbox
+                sandbox.run_code("!pip install -q fastmcp nest-asyncio")
+
+                # Execute conversion via MCP
+                code = f"""
 import asyncio
 from fastmcp import Client
 import traceback
+import base64
+from pathlib import Path
+
+OUTPUT_PATH = "/tmp/tweekit_output.bin"
+
+def store_data(data):
+    if isinstance(data, bytes):
+        raw = data
+    else:
+        try:
+            raw = base64.b64decode(data, validate=True)
+        except Exception:
+            raw = data.encode("utf-8")
+
+    Path(OUTPUT_PATH).write_bytes(raw)
+    print("SUCCESS")
+    print(len(raw))
+    print("ARTIFACT:" + OUTPUT_PATH)
+    return OUTPUT_PATH
 
 async def convert():
     try:
@@ -247,48 +332,39 @@ async def convert():
 
                 # EmbeddedResource.resource.blob contains base64 PDF data
                 if hasattr(content, 'resource') and hasattr(content.resource, 'blob'):
-                    print("SUCCESS")
-                    print(len(content.resource.blob))
-                    return content.resource.blob
+                    return store_data(content.resource.blob)
                 # Check if content itself has blob attribute (different structure)
                 elif hasattr(content, 'blob'):
-                    print("SUCCESS")
-                    print(len(content.blob))
-                    return content.blob
+                    return store_data(content.blob)
                 # Check for ImageContent with data attribute
                 elif hasattr(content, 'data') and hasattr(content, 'type'):
                     print(f"INFO: Found {{content.type}} content")
-                    print("SUCCESS")
-                    print(len(content.data))
-                    return content.data
+                    return store_data(content.data)
                 # Check for text content
                 elif hasattr(content, 'text'):
-                    # Could be TextContent or an error message
-                    print(f"INFO: Text content: {{content.text[:200]}}")
-                    # If text looks like base64, try using it
-                    if len(content.text) > 100 and not content.text.startswith('ERROR'):
-                        print("SUCCESS")
-                        print(len(content.text))
-                        return content.text
+                    text_value = content.text or ""
+                    print(f"INFO: Text content: {{text_value[:200]}}")
+                    if 'MediaRich Server Error' in text_value or '\"error\"' in text_value:
+                        print(f"ERROR: MediaRich error returned: {{text_value[:200]}}")
+                        return None
+                    if len(text_value) > 100 and not text_value.startswith('ERROR'):
+                        return store_data(text_value)
                     else:
-                        print(f"ERROR: {{content.text}}")
+                        print(f"ERROR: {{text_value}}")
                         return None
                 # Try to access as dict
                 elif isinstance(content, dict):
+                    if 'error' in content and isinstance(content['error'], str):
+                        print(f"ERROR: {{content['error'][:200]}}")
+                        return None
                     if 'blob' in content:
-                        print("SUCCESS")
-                        print(len(content['blob']))
-                        return content['blob']
+                        return store_data(content['blob'])
                     elif 'data' in content:
-                        print("SUCCESS")
-                        print(len(content['data']))
-                        return content['data']
+                        return store_data(content['data'])
                     elif 'text' in content:
                         print(f"INFO: Dict text: {{content['text'][:200]}}")
                         if len(content['text']) > 100:
-                            print("SUCCESS")
-                            print(len(content['text']))
-                            return content['text']
+                            return store_data(content['text'])
                         else:
                             print(f"ERROR: {{content['text']}}")
                             return None
@@ -313,131 +389,48 @@ async def convert():
 import nest_asyncio
 nest_asyncio.apply()
 result = asyncio.run(convert())
+if result:
+    print("ARTIFACT_RETURNED")
 """
 
-            conversion_result = sandbox.run_code(code)
+                conversion_result = sandbox.run_code(code)
 
-            # Check for conversion success (E2B SDK uses result.logs.stdout)
-            stdout = conversion_result.logs.stdout if conversion_result and conversion_result.logs else []
-            stderr = conversion_result.logs.stderr if conversion_result and conversion_result.logs else []
+                # Check for conversion success (E2B SDK uses result.logs.stdout)
+                stdout = conversion_result.logs.stdout if conversion_result and conversion_result.logs else []
+                stderr = conversion_result.logs.stderr if conversion_result and conversion_result.logs else []
 
-            # Join stdout list into string
-            stdout_str = ''.join(stdout) if isinstance(stdout, list) else stdout
-            stderr_str = ''.join(stderr) if isinstance(stderr, list) else stderr
+                # Join stdout list into string
+                stdout_str = ''.join(stdout) if isinstance(stdout, list) else stdout
+                stderr_str = ''.join(stderr) if isinstance(stderr, list) else stderr
 
-            if "SUCCESS" not in stdout_str:
-                # If conversion failed and this is a text-like format, try .txt fallback
-                if original_ext in TEXT_LIKE_EXTENSIONS and not attempted_txt_fallback:
-                    print(f"Initial conversion of .{original_ext} failed, trying .txt fallback...")
-                    attempted_txt_fallback = True
-                    file_ext = 'txt'
-
-                    # Retry conversion with .txt extension
-                    code_retry = f"""
-import asyncio
-from fastmcp import Client
-import traceback
-
-async def convert():
-    try:
-        print("STEP: Retrying with .txt extension...")
-        async with Client('{TUNNEL_URL}') as client:
-            result = await client.call_tool('convert', {{
-                'apiKey': '{TWEEKIT_API_KEY}',
-                'apiSecret': '{TWEEKIT_API_SECRET}',
-                'blob': '{request.file_base64}',
-                'inext': 'txt',
-                'outfmt': '{output_format}'
-            }})
-
-            print(f"DEBUG: Retry result type: {{type(result)}}")
-            if result.content and len(result.content) > 0:
-                content = result.content[0]
-                print(f"DEBUG: Retry content type: {{type(content)}}")
-
-                if hasattr(content, 'resource') and hasattr(content.resource, 'blob'):
-                    print("SUCCESS")
-                    print(len(content.resource.blob))
-                    return content.resource.blob
-                elif hasattr(content, 'blob'):
-                    print("SUCCESS")
-                    print(len(content.blob))
-                    return content.blob
-                elif hasattr(content, 'text'):
-                    if len(content.text) > 100 and not content.text.startswith('ERROR'):
-                        print("SUCCESS")
-                        print(len(content.text))
-                        return content.text
-                    else:
-                        print(f"ERROR: {{content.text}}")
-                        return None
-                elif isinstance(content, dict):
-                    if 'blob' in content:
-                        print("SUCCESS")
-                        print(len(content['blob']))
-                        return content['blob']
-                    elif 'text' in content and len(content['text']) > 100:
-                        print("SUCCESS")
-                        print(len(content['text']))
-                        return content['text']
-                    else:
-                        print(f"ERROR: Unknown dict structure: {{content.keys()}}")
-                else:
-                    print(f"ERROR: Unknown content structure, type={{type(content)}}")
-            else:
-                print(f"ERROR: No content in result")
-            return None
-    except Exception as e:
-        print(f"ERROR: {{str(e)}}")
-        traceback.print_exc()
-        return None
-
-import nest_asyncio
-nest_asyncio.apply()
-result = asyncio.run(convert())
-"""
-                    conversion_result = sandbox.run_code(code_retry)
-                    stdout = conversion_result.logs.stdout if conversion_result and conversion_result.logs else []
-                    stderr = conversion_result.logs.stderr if conversion_result and conversion_result.logs else []
-                    stdout_str = ''.join(stdout) if isinstance(stdout, list) else stdout
-                    stderr_str = ''.join(stderr) if isinstance(stderr, list) else stderr
-
-                    if "SUCCESS" not in stdout_str:
-                        # .txt fallback also failed
-                        error_msg = f"Conversion failed for .{original_ext} (tried .txt fallback).\nStdout: {stdout_str}\nStderr: {stderr_str}"
-                        if conversion_result.error:
-                            error_msg += f"\nError: {conversion_result.error}"
-                        raise Exception(error_msg)
-                    else:
-                        print(f"✅ .txt fallback succeeded for .{original_ext}")
-                else:
-                    # Not a text-like format or already tried fallback
+                if "SUCCESS" not in stdout_str:
                     error_msg = f"Conversion failed.\nStdout: {stdout_str}\nStderr: {stderr_str}"
                     if conversion_result.error:
                         error_msg += f"\nError: {conversion_result.error}"
                     raise Exception(error_msg)
+                artifact_path = None
+                lines = [line.strip() for line in stdout_str.strip().split('\n') if line.strip()]
+                for line in lines:
+                    if line.isdigit():
+                        converted_size = int(line)
+                    elif line.startswith("ARTIFACT:"):
+                        artifact_path = line.split("ARTIFACT:", 1)[1].strip()
 
+                if not artifact_path:
+                    print("WARNING: No artifact path returned; conversion likely failed mid-stream.")
+                else:
+                    download_url = sandbox.download_url(artifact_path)
+                    if download_url:
+                        response = httpx.get(download_url, timeout=30)
+                        response.raise_for_status()
+                        converted_bytes = response.content
+                        converted_file = base64.b64encode(converted_bytes).decode()
+                        if not converted_size:
+                            converted_size = len(converted_bytes)
+                    else:
+                        print("WARNING: Could not obtain download URL for converted artifact.")
 
-            # Extract size from output
-            lines = stdout_str.strip().split('\n')
-            converted_size = int(lines[-1]) if len(lines) > 1 else 0
-            
-            # Extract the converted file data from the sandbox result
-            # The convert() function returns the base64 data, which E2B captures as the result value
-            converted_file = None
-            if hasattr(conversion_result, 'results') and conversion_result.results:
-                # E2B stores function return values in results
-                converted_file = conversion_result.results
-            elif hasattr(conversion_result, 'result'):
-                converted_file = conversion_result.result
-            
-            # If not found in results, the data might be in a different location
-            # For now, set to None to prevent the NameError (download will be disabled)
-            if not converted_file:
-                print("WARNING: Converted file data not found in sandbox result. Download will be disabled.")
-                converted_file = None
-
-        conversion_time = time.time() - conversion_start
+            conversion_time = time.time() - conversion_start
 
         # Step 2: Analyze with Groq
         analysis_start = time.time()
@@ -511,6 +504,21 @@ result = asyncio.run(convert())
         else:
             user_error = "An unexpected error occurred during processing"
 
+        if "MediaRich Server Error" in error_details or "No format found for file" in error_details:
+            user_error = (
+                "Markdown extraction is not available for this file yet. "
+                "Try Auto TweekIT or another export option."
+            )
+            error_code = "unsupported_format"
+            record_unsupported_format(original_ext, output_format, request.filename)
+        elif '"status": 500' in error_details and '"Fmt":"md"' in error_details:
+            user_error = (
+                "TweekIT does not yet support direct Markdown output for this format. "
+                "Please use Auto TweekIT or choose a different export."
+            )
+            error_code = "unsupported_format"
+            record_unsupported_format(original_ext, output_format, request.filename)
+
         # Report error to Discord if enabled
         await report_error_to_discord(
             filename=request.filename,
@@ -523,6 +531,7 @@ result = asyncio.run(convert())
             success=False,
             error=user_error,
             error_details=error_details,
+            error_code=error_code,
             total_time=round(time.time() - start_time, 2)
         )
 

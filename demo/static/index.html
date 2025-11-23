@@ -11,908 +11,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
         rel="stylesheet">
-    <style>
-        :root {
-            --primary: #8b5cf6;
-            --primary-hover: #7c3aed;
-            --secondary: #10b981;
-            --dark-bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --gradient-main: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --gradient-hover: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
-            --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
-        }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <link rel="stylesheet" href="/static/styles/main.css">
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--dark-bg);
-            background-image:
-                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-
-        /* Hamburger Menu */
-        .hamburger {
-            display: none;
-            /* Hidden by default on desktop */
-            cursor: pointer;
-            z-index: 1000;
-        }
-
-        .hamburger-icon {
-            font-size: 24px;
-            color: white;
-        }
-
-        .nav-menu-mobile {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 20px;
-            min-width: 250px;
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-20px);
-            transition: all 0.3s;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .nav-menu-mobile.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .nav-menu-mobile a {
-            display: block;
-            padding: 12px 15px;
-            color: var(--text-main);
-            text-decoration: none;
-            border-radius: 6px;
-            transition: background 0.2s;
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-
-        .nav-menu-mobile a:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #8b5cf6;
-        }
-
-        /* Mobile Responsive Updates */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                /* Hide standard nav links on mobile */
-            }
-
-            .hamburger {
-                display: block;
-                /* Show hamburger on mobile */
-            }
-
-            .hero-title {
-                font-size: 36px;
-            }
-
-            .app-card {
-                padding: 20px;
-            }
-
-            .upload-area {
-                padding: 40px 20px;
-            }
-
-            .options-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .action-bar {
-                flex-direction: column;
-            }
-        }
-
-        /* Navigation */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 40px;
-            backdrop-filter: blur(10px);
-            background: rgba(15, 23, 42, 0.8);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 24px;
-            color: white;
-            text-decoration: none;
-        }
-
-        .logo-container img {
-            height: 32px;
-            width: auto;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 30px;
-        }
-
-        .nav-link {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-            font-size: 14px;
-        }
-
-        .nav-link:hover {
-            color: white;
-        }
-
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            border: 1px solid var(--glass-border);
-        }
-
-        .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Main Content */
-        .main-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 60px 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .hero-section {
-            text-align: center;
-            margin-bottom: 50px;
-            max-width: 800px;
-        }
-
-        .hero-badge {
-            display: inline-block;
-            background: rgba(99, 102, 241, 0.1);
-            color: #a5b4fc;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            backdrop-filter: blur(5px);
-        }
-
-        .hero-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 56px;
-            line-height: 1.1;
-            margin-bottom: 20px;
-            background: linear-gradient(to right, #fff, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero-subtitle {
-            font-size: 18px;
-            color: var(--text-muted);
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        .hero-subtitle em {
-            color: #a5b4fc;
-            font-style: normal;
-            font-weight: 600;
-        }
-
-        /* App Card */
-        .app-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 40px;
-            width: 100%;
-            max-width: 900px;
-            box-shadow: var(--shadow-lg);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .app-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        }
-
-        /* Upload Area */
-        .upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            padding: 60px 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.02);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .upload-area:hover,
-        .upload-area.dragover {
-            border-color: #8b5cf6;
-            background: rgba(139, 92, 246, 0.05);
-            transform: translateY(-2px);
-        }
-
-        .upload-icon-wrapper {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 32px;
-            color: #a5b4fc;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .upload-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: white;
-        }
-
-        .upload-desc {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
-
-        .btn-primary {
-            background: var(--gradient-main);
-            color: white;
-            border: none;
-            padding: 12px 32px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: var(--gradient-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        /* Options Grid */
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 40px;
-        }
-
-        .option-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .option-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .option-card.selected {
-            background: rgba(139, 92, 246, 0.1);
-            border-color: #8b5cf6;
-        }
-
-        .option-radio {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            accent-color: #8b5cf6;
-        }
-
-        .option-icon {
-            font-size: 24px;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .option-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: white;
-            display: block;
-        }
-
-        .option-desc {
-            font-size: 12px;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
-
-        /* Controls inside options */
-        .option-controls {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .control-select,
-        .control-input {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid var(--glass-border);
-            color: white;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            outline: none;
-        }
-
-        .control-select:focus,
-        .control-input:focus {
-            border-color: #8b5cf6;
-        }
-
-        /* Progress Section */
-        .progress-section {
-            display: none;
-            margin-top: 40px;
-        }
-
-        .progress-steps {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .progress-step {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-
-        .progress-step.active {
-            background: rgba(139, 92, 246, 0.05);
-            border-color: rgba(139, 92, 246, 0.3);
-        }
-
-        .progress-step.complete {
-            background: rgba(16, 185, 129, 0.05);
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        .step-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        .step-icon.active {
-            background: #8b5cf6;
-            color: white;
-            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
-        }
-
-        .step-icon.complete {
-            background: #10b981;
-            color: white;
-        }
-
-        .step-content {
-            flex: 1;
-        }
-
-        .step-title {
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        .step-time {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        /* Results Section */
-        .results-section {
-            display: none;
-            margin-top: 40px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .result-header {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .success-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .metric-card {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid var(--glass-border);
-        }
-
-        .metric-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 5px;
-        }
-
-        .metric-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .ai-analysis-card {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .ai-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .ai-title {
-            font-weight: 600;
-            color: #a5b4fc;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .ai-model-badge {
-            background: rgba(139, 92, 246, 0.2);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            color: #e2e8f0;
-        }
-
-        .ai-content {
-            line-height: 1.6;
-            color: #e2e8f0;
-            font-size: 15px;
-        }
-
-        .action-bar {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            border: 1px solid var(--glass-border);
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            flex: 1;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* TweekIT Button */
-        .tweekit-btn {
-            width: 100%;
-            margin-top: 30px;
-            background: var(--gradient-main);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            box-shadow: var(--shadow-glow);
-        }
-
-        .tweekit-btn:hover {
-            background: var(--gradient-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
-        }
-
-        /* Footer */
-        .footer {
-            margin-top: auto;
-            padding: 40px 20px;
-            border-top: 1px solid var(--glass-border);
-            background: rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(10px);
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 30px;
-        }
-
-        .footer-logos {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-        }
-
-        .footer-logos img {
-            height: 30px;
-            opacity: 0.9;
-            transition: all 0.3s;
-        }
-
-        .footer-logos img:hover {
-            opacity: 1;
-            transform: scale(1.05);
-        }
-
-        /* Spinner */
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Error Message */
-        .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .error-details {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-        }
-
-        .error-details summary {
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            color: #fca5a5;
-            margin-bottom: 5px;
-        }
-
-        .error-details pre {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
-            overflow-x: auto;
-            font-size: 12px;
-            font-family: monospace;
-            color: #e2e8f0;
-            white-space: pre-wrap;
-        }
-
-        /* Theme Toggle */
-        .theme-toggle {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--glass-border);
-            color: var(--text-main);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 20px;
-            margin-left: 15px;
-        }
-
-        .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: rotate(15deg);
-        }
-
-        /* Light Mode Overrides */
-        body.light-mode {
-            --dark-bg: #f8fafc;
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(0, 0, 0, 0.1);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            background-image:
-                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 40%);
-        }
-
-        body.light-mode .navbar {
-            background: rgba(255, 255, 255, 0.8);
-        }
-
-        body.light-mode .logo-container {
-            color: #1e293b;
-        }
-
-        body.light-mode .nav-link:hover {
-            color: #6366f1;
-        }
-
-        body.light-mode .nav-btn {
-            background: rgba(0, 0, 0, 0.05);
-            color: #1e293b;
-            border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .nav-btn:hover {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .hero-title {
-            background: linear-gradient(to right, #1e293b, #475569);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        body.light-mode .upload-area {
-            background: rgba(0, 0, 0, 0.02);
-            border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .upload-title {
-            color: #1e293b;
-        }
-
-        body.light-mode .option-card {
-            background: white;
-            border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .option-card:hover {
-            border-color: #8b5cf6;
-            background: #f8fafc;
-        }
-
-        body.light-mode .option-title {
-            color: #1e293b;
-        }
-
-        body.light-mode .control-select,
-        body.light-mode .control-input {
-            background: white;
-            color: #1e293b;
-            border-color: rgba(0, 0, 0, 0.2);
-        }
-
-        body.light-mode .metric-card {
-            background: white;
-            border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .metric-value {
-            color: #1e293b;
-        }
-
-        body.light-mode .ai-content {
-            color: #334155;
-        }
-
-        body.light-mode .btn-secondary {
-            background: white;
-            color: #475569;
-            border-color: rgba(0, 0, 0, 0.2);
-        }
-
-        body.light-mode .btn-secondary:hover {
-            background: #f1f5f9;
-        }
-
-        body.light-mode .footer {
-            background: rgba(255, 255, 255, 0.8);
-            border-top-color: rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .badge-iso {
-            background: rgba(0, 0, 0, 0.05);
-            border-color: rgba(0, 0, 0, 0.1);
-            color: #475569;
-        }
-
-        body.light-mode .badge-iso:hover {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .theme-toggle {
-            background: rgba(0, 0, 0, 0.05);
-            border-color: rgba(0, 0, 0, 0.1);
-            color: #1e293b;
-        }
-
-        body.light-mode .theme-toggle:hover {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        /* Badges */
-        .compliance-badges {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .badge-iso {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #e2e8f0;
-            transition: all 0.3s;
-        }
-
-        .badge-iso:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .badge-icon {
-            color: #6366f1;
-            font-size: 14px;
-        }
-    </style>
 </head>
 
 <body>
@@ -950,7 +51,10 @@
         <!-- Hero -->
         <div class="hero-section">
             <span class="hero-badge">✨ Universal File Ingestion</span>
-            <h1 class="hero-title">InstantOn™ Enable Your<br>Agentic Workflows</h1>
+            <h1 class="hero-title">InstantOn™ Enable Your<br>Agentic Workflows with
+                <img src="/static/tweekit-white.svg" alt="TweekIT"
+                    style="height: 1.2em; vertical-align: middle; margin-left: 8px;">
+            </h1>
             <p class="hero-subtitle">
                 E2B + TweekIT + Groq = Zero-Friction Workflows.<br>
                 <em>Just TweekIT™</em> automatically optimizes any file for AI ingestion.
@@ -960,95 +64,121 @@
         <!-- App Card -->
         <div class="app-card">
 
-            <!-- Upload Section -->
-            <div id="uploadSection">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon-wrapper">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="17 8 12 3 7 8" />
-                            <line x1="12" y1="3" x2="12" y2="15" />
-                        </svg>
+            <!-- Upload Section with Side-by-Side Layout -->
+            <div id="uploadSection"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+
+                <!-- LEFT COLUMN: Conversion Options -->
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <h3 style="color: white; font-size: 18px; font-weight: 600; margin: 0 0 8px 0;">What do you want to
+                        do?</h3>
+                    <p style="color: rgba(226,232,240,0.7); font-size: 13px; line-height: 1.6; margin: 0 0 12px;">
+                        TweekIT auto-detects the best ingestion path. Pick a manual path if you know you need:
+                        <span style="color: #a5b4fc;">web-ready previews</span>,
+                        <span style="color: #a5b4fc;">Markdown for RAG/search</span>,
+                        or <span style="color: #a5b4fc;">standardized PDF handoffs</span>.
+                    </p>
+
+                    <div id="conversionOptions" class="options-grid"
+                        style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Auto Mode -->
+                        <label class="option-card selected" onclick="selectOption(this)">
+                            <input type="radio" name="conversionMode" value="auto" checked class="option-radio">
+                            <span class="option-icon">✨</span>
+                            <span class="option-title">Auto TweekIT</span>
+                            <span class="option-desc">AI automatically selects the best format for ingestion.</span>
+                        </label>
+
+                        <!-- Manual Image -->
+                        <label class="option-card" onclick="selectOption(this)">
+                            <input type="radio" name="conversionMode" value="image" class="option-radio">
+                            <span class="option-icon">🖼️</span>
+                            <span class="option-title">Web Image</span>
+                            <span class="option-desc">Convert into a Web Ready Image from a single or any Multi-page
+                                filetype. Select the page you want rendered: 1</span>
+                            <div class="option-controls" onclick="event.preventDefault()">
+                                <select id="imageFormat" class="control-select">
+                                    <option value="png">PNG</option>
+                                    <option value="jpg">JPG</option>
+                                    <option value="gif">GIF</option>
+                                </select>
+                                <input type="number" id="pageNumber" value="1" min="1" class="control-input"
+                                    style="width: 60px" placeholder="Pg">
+                            </div>
+                        </label>
+
+                        <!-- Markdown -->
+                        <label class="option-card" onclick="selectOption(this)">
+                            <input type="radio" name="conversionMode" value="extract" class="option-radio">
+                            <span class="option-icon">📄</span>
+                            <span class="option-title">Markdown</span>
+                            <span class="option-desc">Extract text content as structured Markdown (best for text-first
+                                docs).</span>
+                        </label>
+
+                        <!-- PDF -->
+                        <label class="option-card" onclick="selectOption(this)">
+                            <input type="radio" name="conversionMode" value="pdf" class="option-radio">
+                            <span class="option-icon">📑</span>
+                            <span class="option-title">PDF Document</span>
+                            <span class="option-desc">Universal PDF format for any viewer.</span>
+                        </label>
                     </div>
-                    <h3 class="upload-title">Drop your file here</h3>
-                    <p class="upload-desc">Supports DOC, XLS, PPT, PDF, PSD, AI & 400+ more</p>
-                    <button class="btn-primary"
-                        onclick="event.stopPropagation(); document.getElementById('fileInput').click();">
-                        Select File
-                    </button>
-                    <input type="file" id="fileInput" class="file-input" accept="*/*">
 
-                    <!-- Or Paste URL -->
-                    <div style="margin-top: 16px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">or</div>
-                    <input type="url" id="fileUrl" placeholder="Paste file URL here (https://...)" class="control-input"
-                        style="width: 100%; margin-top: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white;">
-                </div>
-
-                <!-- Conversion Options -->
-                <div class="options-grid">
-                    <!-- Auto Mode -->
-                    <label class="option-card selected" onclick="selectOption(this)">
-                        <input type="radio" name="conversionMode" value="auto" checked class="option-radio">
-                        <span class="option-icon">✨</span>
-                        <span class="option-title">Auto TweekIT</span>
-                        <span class="option-desc">AI automatically selects the best format for ingestion.</span>
-                    </label>
-
-                    <!-- Manual Image -->
-                    <label class="option-card" onclick="selectOption(this)">
-                        <input type="radio" name="conversionMode" value="image" class="option-radio">
-                        <span class="option-icon">🖼️</span>
-                        <span class="option-title">Web Image</span>
-                        <span class="option-desc">Convert into a Web Ready Image from a single or any Multi-page filetype. Select the page you want rendered: 1</span>
-                        <div class="option-controls" onclick="event.preventDefault()">
-                            <select id="imageFormat" class="control-select">
-                                <option value="png">PNG</option>
-                                <option value="jpg">JPG</option>
-                                <option value="gif">GIF</option>
-                            </select>
-                            <input type="number" id="pageNumber" value="1" min="1" class="control-input"
-                                style="width: 60px" placeholder="Pg">
+                    <!-- Groq Model Selector -->
+                    <div
+                        style="padding: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;">
+                        <label
+                            style="display: block; color: white; margin-bottom: 8px; font-size: 14px; font-weight: 500;">
+                            Groq AI Model
+                        </label>
+                        <select id="groqModel" class="control-select"
+                            style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px;">
+                            <option value="llama-3.2-90b-vision-preview" selected>LLaMA 3.2 90B Vision (Recommended)
+                            </option>
+                            <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B Versatile</option>
+                            <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                            <option value="gemma2-9b-it">Gemma 2 9B</option>
+                        </select>
+                        <div style="margin-top: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.6);">
+                            Vision model recommended for image analysis
                         </div>
-                    </label>
-
-                    <!-- Markdown -->
-                    <label class="option-card" onclick="selectOption(this)">
-                        <input type="radio" name="conversionMode" value="extract" class="option-radio">
-                        <span class="option-icon">📄</span>
-                        <span class="option-title">Markdown</span>
-                        <span class="option-desc">Extract text content as structured Markdown.</span>
-                    </label>
-
-                    <!-- PDF -->
-                    <label class="option-card" onclick="selectOption(this)">
-                        <input type="radio" name="conversionMode" value="pdf" class="option-radio">
-                        <span class="option-icon">📑</span>
-                        <span class="option-title">PDF Document</span>
-                        <span class="option-desc">Universal PDF format for any viewer.</span>
-                    </label>
-                </div>
-
-                <!-- Groq Model Selector -->
-                <div style="margin: 20px 0; padding: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;">
-                    <label style="display: block; color: white; margin-bottom: 8px; font-size: 14px; font-weight: 500;">
-                        Groq AI Model
-                    </label>
-                    <select id="groqModel" class="control-select" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px;">
-                        <option value="llama-3.2-90b-vision-preview" selected>LLaMA 3.2 90B Vision (Recommended)</option>
-                        <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B Versatile</option>
-                        <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
-                        <option value="gemma2-9b-it">Gemma 2 9B</option>
-                    </select>
-                    <div style="margin-top: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.6);">
-                        Vision model recommended for image analysis
                     </div>
                 </div>
 
-                <button onclick="handleTweekITConversion()" class="tweekit-btn">
-                    <!-- Removed logo as requested if it was broken, or just text -->
-                    Start TweekIT Process
-                </button>
+                <!-- RIGHT COLUMN: Upload Area -->
+                <div id="uploadAreaContainer"
+                    style="display: flex; flex-direction: column; transition: margin-top 0.4s ease;">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon-wrapper">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                        </div>
+                        <h3 class="upload-title">Drop your file here</h3>
+                        <p class="upload-desc">Supports DOC, XLS, PPT, PDF, PSD, AI & 400+ more</p>
+                        <button id="selectFileBtn" class="btn-primary">
+                            Select File
+                        </button>
+                        <input type="file" id="fileInput" class="file-input" accept="*/*">
+
+                        <!-- Or Paste URL -->
+                        <div
+                            style="margin-top: 16px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
+                            or</div>
+                        <input type="url" id="fileUrl" placeholder="Paste file URL here (https://...)"
+                            class="control-input" onclick="event.stopPropagation();"
+                            style="width: 100%; margin-top: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white;">
+                    </div>
+                    <div id="uploadActionLabel"
+                        style="margin-top: 18px; color: rgba(255,255,255,0.6); font-size: 14px; text-align: center;">
+                        Drop your file to start <span id="selectedActionName">Auto TweekIT</span>.
+                    </div>
+                </div>
+
             </div>
 
             <!-- Progress Section -->
@@ -1131,80 +261,129 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <div style="font-size: 14px; color: var(--text-muted);">
-                <strong>Powered by E2B, TweekIT, and Groq</strong><br>
-                <div style="margin-top: 8px; margin-bottom: 12px;">Open Source, Secure, and Scalable.</div>
+            <!-- Footer: Powered By + About Hackathon Side by Side -->
+            <div
+                style="margin-top: 60px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; max-width: 1200px; width: 100%; align-items: start;">
 
-                <div style="margin-bottom: 15px; font-size: 13px;">
-                    <a href="https://github.com/equilibrium-eq/tweekit-mcp-docker-groq-e2b" target="_blank"
-                        style="color: #6366f1; text-decoration: none; font-weight: 600;">Hackathon Submission Repo</a>
-                    <span style="margin: 0 8px; color: var(--glass-border);">|</span>
-                    <a href="https://github.com/equilibrium-team/tweekit-mcp" target="_blank"
-                        style="color: var(--text-muted); text-decoration: none;">Main TweekIT MCP Repo</a>
+                <!-- LEFT: Powered By -->
+                <div style="text-align: center;">
+                    <h3 style="color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 600; margin-bottom: 12px;">
+                        Powered by TweekIT, E2B, Docker, and Groq</h3>
+                    <div
+                        style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; align-items: center; margin-bottom: 16px;">
+                        <a href="https://e2b.dev" target="_blank"
+                            style="color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+                            <span style="font-size: 20px;">🔒</span>
+                            <span style="font-size: 14px; font-weight: 500;">E2B</span>
+                        </a>
+                        <a href="https://tweekit.io" target="_blank"
+                            style="color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+                            <span style="font-size: 20px;">🔄</span>
+                            <span style="font-size: 14px; font-weight: 500;">TweekIT</span>
+                        </a>
+                        <a href="https://docker.com" target="_blank"
+                            style="color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+                            <span style="font-size: 20px;">🐳</span>
+                            <span style="font-size: 14px; font-weight: 500;">Docker</span>
+                        </a>
+                        <a href="https://groq.com" target="_blank"
+                            style="color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+                            <span style="font-size: 20px;">⚡</span>
+                            <span style="font-size: 14px; font-weight: 500;">Groq</span>
+                        </a>
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 18px;">Open Source, Secure,
+                        and Scalable.</div>
+                    <div style="margin-bottom: 15px; font-size: 13px;">
+                        <a href="https://github.com/equilibrium-eq/tweekit-mcp-docker-groq-e2b" target="_blank"
+                            style="color: #6366f1; text-decoration: none; font-weight: 600;">Hackathon Submission
+                            Repo</a>
+                        <span style="margin: 0 8px; color: var(--glass-border);">|</span>
+                        <a href="https://github.com/equilibrium-team/tweekit-mcp" target="_blank"
+                            style="color: var(--text-muted); text-decoration: none;">Main TweekIT MCP Repo</a>
+                    </div>
+                    <div class="compliance-badges">
+                        <div class="badge-iso" title="ISO 27001 Certified Information Security">
+                            <span class="badge-icon">🛡️</span>
+                            <span>ISO 27001 Certified</span>
+                        </div>
+                        <div class="badge-iso" title="GDPR Compliant">
+                            <span class="badge-icon">🔒</span>
+                            <span>GDPR Compliant</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="compliance-badges">
-                    <div class="badge-iso" title="ISO 27001 Certified Information Security">
-                        <span class="badge-icon">🛡️</span>
-                        <span>ISO 27001 Certified</span>
-                    </div>
-                    <div class="badge-iso" title="GDPR Compliant">
-                        <span class="badge-icon">🔒</span>
-                        <span>GDPR Compliant</span>
-                    </div>
-                </div>
-            </div>
-            <!-- Hackathon Section -->
-            <div style="margin-top: 60px; max-width: 800px; width: 100%;">
-                <details class="error-details"
-                    style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border);">
-                    <summary style="color: #a5b4fc; font-size: 16px; padding: 10px;">▸ About This Hackathon Project &
-                        Product Announcement</summary>
-                    <div style="padding: 20px; color: var(--text-muted); line-height: 1.6;">
-                        <p style="margin-bottom: 15px;">
-                            This E2B Hackathon project started at midnight and was vibe-coded using all the latest
-                            tools.
-                            It demonstrates the power of <strong>TweekIT InstantOn™</strong> combined with E2B's secure
-                            sandboxes and Groq's ultra-fast AI.
-                        </p>
-
-                        <div
-                            style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                <span style="font-size: 18px;">🐙</span>
-                                <strong style="color: white;">Docker + E2B + TweekIT + Groq Hackathon Demo</strong>
-                            </div>
-                            <p style="font-size: 14px;">
-                                We integrated E2B, Docker, and Groq simultaneously to prove that enterprise-grade AI
-                                infrastructure can be deployed in hours, not weeks.
+                <!-- RIGHT: About Hackathon -->
+                <div>
+                    <details class="error-details"
+                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border);">
+                        <summary style="color: #a5b4fc; font-size: 14px; padding: 12px; cursor: pointer;">▸ About This
+                            Hackathon</summary>
+                        <div style="padding: 16px; color: var(--text-muted); line-height: 1.6; font-size: 13px;">
+                            <p style="margin-bottom: 12px;">
+                                This E2B Hackathon project demonstrates <strong>TweekIT InstantOn™</strong> combined
+                                with E2B's secure sandboxes, Docker containers, and Groq's ultra-fast AI.
                             </p>
-                        </div>
+                            <div
+                                style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <span style="font-size: 16px;">🐙</span>
+                                    <strong style="color: white; font-size: 13px;">Docker + E2B + TweekIT +
+                                        Groq</strong>
+                                </div>
+                                <p style="font-size: 12px;">
+                                    Enterprise-grade AI infrastructure deployed in hours, not weeks.
+                                </p>
+                            </div>
 
-                        <h4 style="color: #a5b4fc; text-align: center; margin-top: 30px; margin-bottom: 15px;">Hackathon
-                            Team</h4>
-                        <div style="display: flex; justify-content: center; gap: 40px; text-align: center;">
-                            <div>
-                                <div style="font-size: 24px; margin-bottom: 5px;">👨‍💻</div>
-                                <div style="font-weight: 600; color: white;">Sean Barger</div>
-                                <div style="font-size: 12px;">Mad Scientist</div>
+                            <h4 style="color: #a5b4fc; text-align: center; margin: 15px 0 10px; font-size: 13px;">Team
+                            </h4>
+                            <div
+                                style="display: flex; justify-content: center; gap: 20px; text-align: center; font-size: 12px; flex-wrap: wrap;">
+                                <div>
+                                    <div style="font-size: 20px; margin-bottom: 4px;">👨‍💻</div>
+                                    <div style="font-weight: 600; color: white;">Sean Barger</div>
+                                    <div style="font-size: 11px; opacity: 0.7;">Mad Scientist</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 20px; margin-bottom: 4px;">👨‍💻</div>
+                                    <div style="font-weight: 600; color: white;">
+                                        <a href="https://github.com/dpeq" target="_blank"
+                                            style="color: white; text-decoration: none;">DPoch</a>
+                                    </div>
+                                    <div style="font-size: 11px; opacity: 0.7;">Engineer</div>
+                                </div>
                             </div>
-                            <div>
-                                <div style="font-size: 24px; margin-bottom: 5px;">🤖</div>
-                                <div style="font-weight: 600; color: white;">Antigravity</div>
-                                <div style="font-size: 12px;">AI Agent</div>
+
+                            <h4 style="color: #a5b4fc; text-align: center; margin: 20px 0 10px; font-size: 13px;">Tools
+                                Used</h4>
+                            <div
+                                style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; font-size: 11px; opacity: 0.8;">
+                                <span
+                                    style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;">Vibecraft</span>
+                                <span
+                                    style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;">Claude-Code
+                                    IDE</span>
+                                <span
+                                    style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;">Codex</span>
+                                <span
+                                    style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;">Antigravity</span>
+                                <span
+                                    style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;">Cloud
+                                    Run</span>
                             </div>
                         </div>
-                    </div>
-                </details>
+                    </details>
+                </div>
             </div>
 
-            <div class="footer-logos">
+            <!-- Sponsor Logos Below -->
+            <div class="footer-logos" style="margin-top: 30px;">
                 <a href="https://equilibrium.com" target="_blank"><img src="/static/assets/eq_logo_mediagen.png"
                         alt="Equilibrium" class="footer-logo"></a>
                 <a href="https://cpucoin.io" target="_blank"><img src="/static/assets/cpucoin-logo-white.png"
                         alt="CPUcoin" class="footer-logo"></a>
-                <a href="https://groq.com" target="_blank"><img src="/static/assets/groq-logo.webp" alt="Groq"
-                        class="footer-logo" style="filter: brightness(0) invert(1);"></a>
                 <a href="https://cloud.google.com/run" target="_blank"
                     style="color: white; font-size: 14px; opacity: 0.9; text-decoration: none; display: flex; align-items: center; gap: 5px;">
                     <span style="font-size: 18px;">☁️</span> Google Cloud Serverless
@@ -1216,15 +395,58 @@
     <script src="/static/app.js"></script>
     <script>
         // UI helper for option selection
-        function selectOption(label) {
-            // Remove selected class from all cards
-            document.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
-            // Add to clicked card
-            label.classList.add('selected');
-            // Trigger radio click if not already triggered
-            const radio = label.querySelector('input[type="radio"]');
-            if (radio && !radio.checked) radio.checked = true;
+        function syncUploadArea(label) {
+            const uploadContainer = document.getElementById('uploadAreaContainer');
+            const optionsGrid = document.getElementById('conversionOptions');
+            if (!uploadContainer || !optionsGrid || !label) return;
+
+            if (window.matchMedia('(max-width: 1024px)').matches) {
+                uploadContainer.style.marginTop = '0px';
+                return;
+            }
+
+            const baseCard = optionsGrid.querySelector('.option-card');
+            if (!baseCard) return;
+
+            const translate = Math.max(0, label.offsetTop - baseCard.offsetTop);
+            uploadContainer.style.marginTop = `${translate}px`;
         }
+
+        function updateUploadLabel(label) {
+            const actionNameEl = document.getElementById('selectedActionName');
+            const labelContainer = document.getElementById('uploadActionLabel');
+            if (!actionNameEl || !labelContainer || !label) return;
+
+            const titleEl = label.querySelector('.option-title');
+            if (titleEl) actionNameEl.textContent = titleEl.textContent.trim();
+
+            labelContainer.classList.remove('slide-in');
+            void labelContainer.offsetWidth;
+            labelContainer.classList.add('slide-in');
+            setTimeout(() => labelContainer.classList.remove('slide-in'), 300);
+        }
+
+        function selectOption(label, fromResize = false) {
+            if (!fromResize) {
+                document.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
+                label.classList.add('selected');
+                const radio = label.querySelector('input[type="radio"]');
+                if (radio && !radio.checked) radio.checked = true;
+            }
+
+            syncUploadArea(label);
+            if (!fromResize) updateUploadLabel(label);
+        }
+
+        window.addEventListener('resize', () => {
+            const active = document.querySelector('.option-card.selected');
+            if (active) selectOption(active, true);
+        });
+
+        window.addEventListener('load', () => {
+            const active = document.querySelector('.option-card.selected');
+            if (active) selectOption(active, true);
+        });
     </script>
 </body>
 
