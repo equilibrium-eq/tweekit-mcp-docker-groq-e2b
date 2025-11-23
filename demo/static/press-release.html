@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Announcement | TweekIT InstantOn™ Universal AI File Ingestion</title>
+    <link rel="icon" type="image/png" href="/static/assets/tweekit-icon-square-150.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .hamburger:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .hamburger-icon {
+            color: white;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .nav-menu {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+            min-width: 250px;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+        }
+
+        .nav-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 12px 15px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            color: #667eea;
+        }
+
+        /* Floating Back Button with Bubble Effect */
+        .floating-back {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 998;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: bubble 3s infinite ease-in-out;
+        }
+
+        @keyframes bubble {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.05); }
+        }
+
+        .floating-back:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+            animation: none;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 40px;
+            color: white;
+            text-align: center;
+        }
+
+        .header-logo { margin-bottom: 20px; }
+        .header-logo img { height: 60px; width: auto; }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .header .date {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 50px 40px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .content h2 {
+            color: #667eea;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .content h3 {
+            color: #667eea;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .content ul {
+            margin-bottom: 20px;
+            padding-left: 30px;
+        }
+
+        .content li {
+            margin-bottom: 12px;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .quote {
+            font-style: italic;
+            font-size: 18px;
+            color: #555;
+            margin: 30px 0;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            background: #f8f9ff;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .footer {
+            padding: 40px;
+            text-align: center;
+            background: #f5f7fa;
+            border-top: 1px solid #eee;
+        }
+
+        .footer-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-logos img {
+            height: 40px;
+            width: auto;
+        }
+
+        .footer-links {
+            margin-top: 20px;
+        }
+
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 600;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .container {
+                border-radius: 12px;
+            }
+
+            .header {
+                padding: 40px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .content h2 {
+                font-size: 22px;
+            }
+
+            .content h3 {
+                font-size: 18px;
+            }
+
+            .content p, .content li {
+                font-size: 14px;
+            }
+
+            .highlight-box, .quote {
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .cta-button {
+                padding: 12px 30px;
+                font-size: 14px;
+                margin: 10px 5px;
+                display: block;
+                width: 100%;
+                max-width: 300px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .floating-back {
+                right: 15px;
+                padding: 12px 16px;
+                font-size: 12px;
+            }
+
+            .hamburger {
+                width: 45px;
+                height: 45px;
+                top: 15px;
+                right: 15px;
+            }
+
+            .nav-menu {
+                right: 15px;
+                min-width: 200px;
+                top: 70px;
+            }
+
+            .footer {
+                padding: 30px 20px;
+            }
+
+            .footer-logos {
+                gap: 20px;
+            }
+
+            .footer-logos img {
+                height: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .floating-back {
+                right: 10px;
+                padding: 10px 14px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hamburger Menu -->
+    <div class="hamburger" onclick="toggleMenu()">
+        <span class="hamburger-icon">☰</span>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="nav-menu" id="navMenu">
+        <a href="#top" onclick="closeMenu()">🏠 Top</a>
+        <a href="#problem" onclick="closeMenu()">❌ The Problem</a>
+        <a href="#solution" onclick="closeMenu()">✨ The Solution</a>
+        <a href="#capabilities" onclick="closeMenu()">⚡ Key Capabilities</a>
+        <a href="#technology" onclick="closeMenu()">🔧 Technology Stack</a>
+        <a href="#applications" onclick="closeMenu()">💼 Applications</a>
+        <a href="#availability" onclick="closeMenu()">📦 Availability</a>
+        <a href="#about" onclick="closeMenu()">ℹ️ About</a>
+        <a href="#contact" onclick="closeMenu()">📧 Contact</a>
+    </nav>
+
+    <!-- Floating Back to Demo Button -->
+    <a href="/" class="floating-back">← Demo</a>
+
+    <div class="container" id="top">
+        <div class="header">
+            <a href="/" class="back-link">← Back to Demo</a>
+            <div class="header-logo">
+                <img src="/static/assets/logo-white-logo-full-dark-bkg.png" alt="TweekIT">
+            </div>
+            <h1>Equilibrium® Announces TweekIT InstantOn™ Universal AI File Ingestion Platform</h1>
+            <p class="date">FOR IMMEDIATE RELEASE | January 2025</p>
+        </div>
+
+        <div class="content">
+            <p><strong>Revolutionary Open-Source Platform Eliminates AI Ingestion Barriers Across 400+ File Formats</strong></p>
+
+            <p>Equilibrium, a leader in distributed computing and AI infrastructure, today announced the launch of <strong>TweekIT™</strong>, a groundbreaking universal AI file ingestion platform that eliminates one of the most persistent barriers in AI adoption: incompatible file formats.</p>
+
+            <div class="highlight-box" id="problem">
+                <h3>The Problem: AI Ingestion Hell</h3>
+                <p>Modern AI assistants and agentic workflows hit a wall when users try to upload proprietary file formats like Adobe Illustrator (.ai), AutoCAD drawings (.dwg), legacy Microsoft Office documents, or specialized industry formats. Until now, organizations have been forced to choose between:</p>
+                <ul>
+                    <li>Manually converting files before AI processing</li>
+                    <li>Building custom conversion pipelines for each format</li>
+                    <li>Simply giving up on using AI with their existing data</li>
+                </ul>
+            </div>
+
+            <h2 id="solution">The Solution: Just TweekIT™</h2>
+
+            <p>TweekIT eliminates this friction entirely. Built on the Model Context Protocol (MCP) standard, TweekIT seamlessly converts 400+ file formats into AI-readable formats in real-time, enabling true universal file ingestion for any AI application.</p>
+
+            <div class="quote">
+                "Don't error and continue. Error and TweekIT, then continue with the workflow making users happy. Multi-page files AI can't read? TweekIT automatically converts them so AI can ingest and continue. The world of personal and enterprise data is now ingestible by all AI."
+            </div>
+
+            <h3 id="capabilities">Key Capabilities</h3>
+            <ul>
+                <li><strong>400+ Format Support:</strong> DOC, XLS, PPT, PSD, AI, DWG, TIFF, and hundreds more proprietary and legacy formats</li>
+                <li><strong>Dual Conversion Modes:</strong> Web-optimized image rendering or full document text extraction</li>
+                <li><strong>MCP Native:</strong> Built on the Model Context Protocol for seamless integration with Claude, ChatGPT, and other AI platforms</li>
+                <li><strong>Enterprise-Ready:</strong> Secure on-premise deployment via Tier1 MediaGen miner nodes</li>
+                <li><strong>Massively Scalable:</strong> Distributed processing powered by CPUcoin® network infrastructure</li>
+                <li><strong>Open Source:</strong> Community-driven development and extensible architecture</li>
+            </ul>
+
+            <h2 id="technology">Powered by E2B + Groq + TweekIT</h2>
+
+            <p>The demo showcases TweekIT's integration with cutting-edge AI infrastructure:</p>
+            <ul>
+                <li><strong>E2B Code Interpreter:</strong> Secure sandbox execution environment</li>
+                <li><strong>TweekIT MCP Server:</strong> Universal file conversion engine</li>
+                <li><strong>Groq AI:</strong> Ultra-fast LLM analysis (llama-3.3-70b-versatile)</li>
+            </ul>
+
+            <div class="highlight-box" id="applications">
+                <h3>Real-World Applications</h3>
+                <p><strong>Agentic Workflows:</strong> Enable AI assistants to work with design files from Freepik, video assets from Heygen, or any file format from graphic designers' desktops without manual conversion.</p>
+                <p><strong>Enterprise Data Liberation:</strong> Process decades of legacy documents, CAD drawings, and proprietary formats for AI analysis, search, and automation.</p>
+                <p><strong>Developer Integration:</strong> Add universal file support to any AI application with a single MCP integration.</p>
+            </div>
+
+            <h2>Hackathon Origins, Production Vision</h2>
+
+            <p>TweekIT was born during the E2B Hackathon, where it was "vibe-coded" from midnight using the latest AI development tools. What started as a hackathon project is launching as a production-ready platform with immediate commercial availability.</p>
+
+            <div class="highlight-box" style="background: linear-gradient(135deg, #fff8e1 0%, #ffe082 100%); border-left: 4px solid #ffa726;">
+                <h3 style="color: #e65100;">A Note from the Founder</h3>
+                <p style="font-style: italic; color: #444;">
+                    <strong>Note:</strong> This press release is awaiting final approval for public release. We're hoping to have it approved by launch time!
+                </p>
+                <p style="color: #444; margin-top: 15px;">
+                    Building this demo agentically was an absolute game-changer. The ease with which E2B integrates with Docker—and how quickly we migrated from Cloud Run—demonstrates the power of modern development tools. What used to take weeks happened in hours.
+                </p>
+                <p style="color: #444;">
+                    Beyond file conversion, we're looking at instant agentic analysis, automated workflows, and all kinds of other capabilities at the end of the rainbow. The speed at which this integration happened and the ease of deployment is genuinely exciting. This is just the beginning.
+                </p>
+                <p style="margin-top: 15px; color: #666; font-weight: 600;">
+                    — Sean Barger<br>
+                    <span style="font-size: 14px;">Mad Scientist, Founder</span>
+                </p>
+            </div>
+
+            <h3 id="availability">Availability</h3>
+            <p><strong>Open Source:</strong> The TweekIT MCP server is available now on GitHub</p>
+            <p><strong>Enterprise On-Premise:</strong> Deploy Tier1 MediaGen miner nodes for secure internal processing without cloud connectivity</p>
+            <p><strong>Cloud API:</strong> Integration-ready API for developers (coming soon)</p>
+
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="https://github.com/equilibrium-team/tweekit-mcp" target="_blank" class="cta-button">View on GitHub</a>
+                <a href="/" class="cta-button">Try the Demo</a>
+            </div>
+
+            <h2 id="about">About Equilibrium®</h2>
+            <p>Equilibrium develops next-generation distributed computing infrastructure and AI platforms. Backed by CPUcoin®'s decentralized processing network, Equilibrium delivers enterprise-grade solutions that combine security, scalability, and open-source innovation.</p>
+
+            <h2 id="contact">Media Contact</h2>
+            <p>For press inquiries, partnership opportunities, or technical information, please visit <a href="https://equilibrium.com" target="_blank" style="color: #667eea;">equilibrium.com</a> or <a href="https://cpucoin.io" target="_blank" style="color: #667eea;">cpucoin.io</a></p>
+        </div>
+
+        <div class="footer">
+            <p><strong>###</strong></p>
+            <p style="margin-top: 20px; font-size: 12px; color: #666;">© 2025 Equilibrium. All rights reserved. Equilibrium®, TweekIT™, and all related marks are trademarks or registered trademarks of Equilibrium. CPUcoin® is a registered trademark of CPUcoin.</p>
+
+            <div class="footer-logos">
+                <a href="https://equilibrium.com" target="_blank">
+                    <img src="/static/assets/equilibrium_horizontal_whitebg.png" alt="Equilibrium">
+                </a>
+                <a href="https://cpucoin.io" target="_blank">
+                    <img src="/static/assets/cpucoin_complete_logo.png" alt="CPUcoin">
+                </a>
+            </div>
+
+            <div class="footer-links">
+                <a href="/">Demo</a>
+                <a href="https://github.com/equilibrium-team/tweekit-mcp" target="_blank">GitHub</a>
+                <a href="https://equilibrium.com" target="_blank">Equilibrium</a>
+                <a href="https://cpucoin.io" target="_blank">CPUcoin</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Hamburger menu functionality
+        function toggleMenu() {
+            const menu = document.getElementById('navMenu');
+            menu.classList.toggle('active');
+        }
+
+        function closeMenu() {
+            const menu = document.getElementById('navMenu');
+            menu.classList.remove('active');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('navMenu');
+            const hamburger = document.querySelector('.hamburger');
+
+            if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.getElementById('navMenu').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
