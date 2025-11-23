@@ -417,9 +417,25 @@ result = asyncio.run(convert())
                         error_msg += f"\nError: {conversion_result.error}"
                     raise Exception(error_msg)
 
+
             # Extract size from output
             lines = stdout_str.strip().split('\n')
             converted_size = int(lines[-1]) if len(lines) > 1 else 0
+            
+            # Extract the converted file data from the sandbox result
+            # The convert() function returns the base64 data, which E2B captures as the result value
+            converted_file = None
+            if hasattr(conversion_result, 'results') and conversion_result.results:
+                # E2B stores function return values in results
+                converted_file = conversion_result.results
+            elif hasattr(conversion_result, 'result'):
+                converted_file = conversion_result.result
+            
+            # If not found in results, the data might be in a different location
+            # For now, set to None to prevent the NameError (download will be disabled)
+            if not converted_file:
+                print("WARNING: Converted file data not found in sandbox result. Download will be disabled.")
+                converted_file = None
 
         conversion_time = time.time() - conversion_start
 

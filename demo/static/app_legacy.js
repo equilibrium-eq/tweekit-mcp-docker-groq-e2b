@@ -1,36 +1,7 @@
-// Demo Frontend Logic (Updated for UI Upgrade)
+// Demo Frontend Logic
 let selectedFile = null;
 let currentResult = null;
 let currentVersion = null;
-
-// Menu Handling
-function toggleMenu() {
-    const menu = document.getElementById('navMenu');
-    menu.classList.toggle('active');
-}
-
-function closeMenu() {
-    const menu = document.getElementById('navMenu');
-    menu.classList.remove('active');
-}
-
-// Close menu when clicking outside
-document.addEventListener('click', function (event) {
-    const menu = document.getElementById('navMenu');
-    const hamburger = document.querySelector('.hamburger');
-
-    if (menu && hamburger && !menu.contains(event.target) && !hamburger.contains(event.target)) {
-        menu.classList.remove('active');
-    }
-});
-
-// Close menu on escape key
-document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
-        const menu = document.getElementById('navMenu');
-        if (menu) menu.classList.remove('active');
-    }
-});
 
 // Version checking
 async function checkForUpdates() {
@@ -127,42 +98,37 @@ function hardRefresh() {
 // Check for updates on load and every 5 minutes
 checkForUpdates();
 setInterval(checkForUpdates, 5 * 60 * 1000);
-setInterval(checkForUpdates, 5 * 60 * 1000);
 
 // File upload handling
 const fileInput = document.getElementById('fileInput');
 const uploadArea = document.getElementById('uploadArea');
 
-if (fileInput) {
-    fileInput.addEventListener('change', handleFileSelect);
-}
+fileInput.addEventListener('change', handleFileSelect);
 
-if (uploadArea) {
-    // Click anywhere in upload area to trigger file selection
-    uploadArea.addEventListener('click', () => {
-        fileInput.click();
-    });
+// Click anywhere in upload area to trigger file selection
+uploadArea.addEventListener('click', () => {
+    fileInput.click();
+});
 
-    // Drag and drop
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('dragover');
-    });
+// Drag and drop
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
 
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('dragover');
-    });
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
 
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
 
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFile(files[0]);
-        }
-    });
-}
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFile(files[0]);
+    }
+});
 
 function handleFileSelect(e) {
     if (e.target.files.length > 0) {
@@ -327,20 +293,20 @@ function updateStep(stepNumber, status, timeText = '') {
     const time = document.getElementById(`time${stepNumber}`);
 
     // Remove all status classes
-    step.classList.remove('active', 'complete');
-    icon.classList.remove('active', 'complete');
+    step.classList.remove('pending', 'active', 'complete');
+    icon.classList.remove('pending', 'active', 'complete');
 
     // Add new status
+    step.classList.add(status);
+    icon.classList.add(status);
+
+    // Update icon
     if (status === 'active') {
-        step.classList.add('active');
-        icon.classList.add('active');
-        icon.innerHTML = '<div class="spinner"></div>';
+        icon.innerHTML = '<span class="spinner"></span>';
     } else if (status === 'complete') {
-        step.classList.add('complete');
-        icon.classList.add('complete');
         icon.textContent = '✓';
     } else {
-        icon.textContent = stepNumber;
+        icon.textContent = '⏳';
     }
 
     // Update time text
@@ -352,7 +318,6 @@ function updateStep(stepNumber, status, timeText = '') {
 function resetProgress() {
     for (let i = 1; i <= 3; i++) {
         updateStep(i, 'pending', '');
-        document.getElementById(`icon${i}`).textContent = i;
     }
 }
 
@@ -380,7 +345,7 @@ function showResults(result) {
         document.getElementById('processingTime').textContent = `${breakdown.total}s`;
         document.getElementById('totalTime').innerHTML = `
             <strong>Completed in ${breakdown.total}s</strong><br>
-            <span style="font-size: 13px; opacity: 0.8; line-height: 1.6;">
+            <span style="font-size: 13px; color: #666; line-height: 1.6;">
                 ⏱️ File prep: ${breakdown.upload}s<br>
                 🔄 TweekIT conversion: ${breakdown.processing}s<br>
                 🤖 AI analysis: ${breakdown.analysis}s
@@ -497,84 +462,10 @@ function downloadFile() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        // Show purge notification
-        showPurgeNotification();
-
     } catch (error) {
         console.error('Download error:', error);
         alert('Failed to download file. Please try converting again.');
     }
-}
-
-// Show purge notification after download
-function showPurgeNotification() {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 16px 24px;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        font-size: 14px;
-        font-weight: 500;
-        z-index: 10000;
-        max-width: 350px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        animation: slideIn 0.3s ease-out;
-    `;
-
-    notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 20px;">🗑️</span>
-            <div>
-                <div style="font-weight: 600; margin-bottom: 4px;">File Purged</div>
-                <div style="font-size: 13px; opacity: 0.9;">All files and artifacts from this tweekit have been purged from headless TweekIT Tier-1 Node.</div>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(notification);
-
-    // Remove after 5 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 5000);
-}
-
-// Add animations to document head
-if (!document.querySelector('#purge-animations')) {
-    const style = document.createElement('style');
-    style.id = 'purge-animations';
-    style.textContent = `
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
 }
 
 // Save conversion to history (localStorage)
@@ -674,6 +565,11 @@ function handleTweekITConversion() {
 // Process URL conversion (placeholder for backend implementation)
 async function processUrlConversion(url) {
     alert('URL conversion coming soon!\n\nThis feature will fetch and convert files directly from URLs using TweekIT\'s convert_url functionality.\n\nFor now, please download the file and upload it manually.');
+
+    // TODO: Implement URL conversion backend
+    // Will call /api/process-url endpoint with:
+    // - url: the file URL
+    // - output_format: selected format from urlOutputFormat dropdown
 }
 
 // Initial check - test API health
