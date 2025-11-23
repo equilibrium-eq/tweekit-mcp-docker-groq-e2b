@@ -978,6 +978,11 @@
                         Select File
                     </button>
                     <input type="file" id="fileInput" class="file-input" accept="*/*">
+
+                    <!-- Or Paste URL -->
+                    <div style="margin-top: 16px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">or</div>
+                    <input type="url" id="fileUrl" placeholder="Paste file URL here (https://...)" class="control-input"
+                        style="width: 100%; margin-top: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white;">
                 </div>
 
                 <!-- Conversion Options -->
@@ -995,7 +1000,7 @@
                         <input type="radio" name="conversionMode" value="image" class="option-radio">
                         <span class="option-icon">🖼️</span>
                         <span class="option-title">Web Image</span>
-                        <span class="option-desc">Convert to PNG, JPG, or GIF.</span>
+                        <span class="option-desc">Convert into a Web Ready Image from a single or any Multi-page filetype. Select the page you want rendered: 1</span>
                         <div class="option-controls" onclick="event.preventDefault()">
                             <select id="imageFormat" class="control-select">
                                 <option value="png">PNG</option>
@@ -1022,17 +1027,13 @@
                         <span class="option-title">PDF Document</span>
                         <span class="option-desc">Universal PDF format for any viewer.</span>
                     </label>
+                </div>
 
-                    <!-- URL -->
-                    <label class="option-card" onclick="selectOption(this)">
-                        <input type="radio" name="conversionMode" value="url" class="option-radio">
-                        <span class="option-icon">🌐</span>
-                        <span class="option-title">From URL</span>
-                        <span class="option-desc">Fetch and convert directly from a link.</span>
-                        <div class="option-controls" onclick="event.preventDefault()">
-                            <input type="url" id="fileUrl" placeholder="https://..." class="control-input"
-                                style="width: 100%">
-                        </div>
+                <!-- Vision Model Checkbox -->
+                <div style="margin: 20px 0; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: white;">
+                        <input type="checkbox" id="useVision" checked style="width: 18px; height: 18px; cursor: pointer;">
+                        <span style="font-size: 14px;">Use Vision Model (llama-3.2-90b-vision-preview)</span>
                     </label>
                 </div>
 

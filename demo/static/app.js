@@ -255,7 +255,7 @@ async function processFile() {
                 file_base64: base64File.split(',')[1], // Remove data URL prefix
                 filename: selectedFile.name,
                 output_format: outputFormat,
-                use_vision: false,
+                use_vision: document.getElementById('useVision')?.checked || false,
                 conversion_mode: conversionMode,
                 page_number: pageNumber
             })
@@ -629,7 +629,7 @@ function viewHistory() {
 }
 
 // Handle TweekIT button click for manual mode
-function handleTweekITConversion() {
+async function handleTweekITConversion() {
     // Get selected conversion mode
     const selectedMode = document.querySelector('input[name="conversionMode"]:checked')?.value;
 
@@ -638,15 +638,10 @@ function handleTweekITConversion() {
         return;
     }
 
-    // If URL mode, validate URL and process differently
-    if (selectedMode === 'url') {
-        const urlInput = document.getElementById('fileUrl')?.value;
-        if (!urlInput || !urlInput.trim()) {
-            alert('Please enter a URL to convert');
-            document.getElementById('fileUrl')?.focus();
-            return;
-        }
+    // Check if URL is provided
+    const urlInput = document.getElementById('fileUrl')?.value?.trim();
 
+    if (urlInput) {
         // Validate URL format
         try {
             new URL(urlInput);
@@ -656,12 +651,35 @@ function handleTweekITConversion() {
             return;
         }
 
-        // Process URL conversion
-        processUrlConversion(urlInput);
+        // Fetch file from URL and process
+        try {
+            const response = await fetch(urlInput);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
+            }
+
+            // Get filename from URL or Content-Disposition header
+            let filename = urlInput.split('/').pop().split('?')[0] || 'downloaded-file';
+            const contentDisposition = response.headers.get('content-disposition');
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (filenameMatch) filename = filenameMatch[1];
+            }
+
+            // Convert to blob and create File object
+            const blob = await response.blob();
+            selectedFile = new File([blob], filename, { type: blob.type });
+
+            // Process the file
+            processFile();
+        } catch (error) {
+            alert(`Failed to fetch file from URL: ${error.message}`);
+            console.error('URL fetch error:', error);
+        }
     } else {
         // For file-based modes, ensure a file is selected
         if (!selectedFile) {
-            alert('Please select a file to process');
+            alert('Please select a file to process or provide a URL');
             fileInput.click();
             return;
         }
@@ -669,11 +687,6 @@ function handleTweekITConversion() {
         // Process file normally
         processFile();
     }
-}
-
-// Process URL conversion (placeholder for backend implementation)
-async function processUrlConversion(url) {
-    alert('URL conversion coming soon!\n\nThis feature will fetch and convert files directly from URLs using TweekIT\'s convert_url functionality.\n\nFor now, please download the file and upload it manually.');
 }
 
 // Initial check - test API health
