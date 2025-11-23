@@ -2,6 +2,71 @@
 let selectedFile = null;
 let currentResult = null;
 let currentVersion = null;
+let selectedGroqModelLabel = null;
+
+const DEFAULT_STEP_TITLES = {
+    1: 'Creating E2B Sandbox',
+    2: 'Converting via TweekIT MCP',
+    3: 'Analyzing with Groq AI'
+};
+
+const WEB_PREVIEW_EXTENSIONS = new Set(['pdf', 'ppt', 'pptx']);
+const TEXT_EXTRACTION_EXTENSIONS = new Set([
+    'md', 'markdown', 'txt', 'rtf', 'rst', 'org', 'log', 'ini', 'cfg', 'conf',
+    'json', 'yaml', 'yml', 'csv', 'tsv', 'html', 'htm', 'xml'
+]);
+
+function getFileExtension(filename) {
+    if (!filename) return '';
+    const lastDot = filename.lastIndexOf('.');
+    if (lastDot === -1) return '';
+    return filename.substring(lastDot + 1).toLowerCase();
+}
+
+function determineAutoStrategy(filename) {
+    const ext = getFileExtension(filename);
+
+    if (WEB_PREVIEW_EXTENSIONS.has(ext)) {
+        return {
+            outputFormat: 'png',
+            conversionMode: 'preview',
+            label: 'Web preview (PNG)',
+            description: 'Web preview (PNG first page)',
+            pageNumber: 1
+        };
+    }
+
+    if (TEXT_EXTRACTION_EXTENSIONS.has(ext)) {
+        return {
+            outputFormat: 'md',
+            conversionMode: 'extract',
+            label: 'Markdown extraction',
+            description: 'Markdown extraction for AI ingestion',
+            pageNumber: 1
+        };
+    }
+
+    return {
+        outputFormat: 'pdf',
+        conversionMode: 'auto',
+        label: 'AI normalization (PDF)',
+        description: 'AI-optimized normalization',
+        pageNumber: 1
+    };
+}
+
+function setStepTitle(stepNumber, title) {
+    const titleElement = document.querySelector(`#step${stepNumber} .step-title`);
+    if (titleElement && title) {
+        titleElement.textContent = title;
+    }
+}
+
+function resetStepTitles() {
+    Object.entries(DEFAULT_STEP_TITLES).forEach(([step, title]) => {
+        setStepTitle(Number(step), title);
+    });
+}
 
 // Menu Handling
 function toggleMenu() {
@@ -179,13 +244,44 @@ async function processFile() {
     if (!selectedFile) return;
 
     // Hide upload section
-    document.getElementById('uploadSection').style.display = 'none';
     document.getElementById('progressSection').style.display = 'block';
     document.getElementById('resultsSection').style.display = 'none';
     document.getElementById('errorMessage').style.display = 'none';
 
+    // Smooth scroll to progress section
+    setTimeout(() => {
+        document.getElementById('progressSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+
     // Reset progress
     resetProgress();
+
+    const modeValue = document.querySelector('input[name="conversionMode"]:checked')?.value || 'auto';
+    const optionTitle = document.querySelector('.option-card.selected .option-title')?.textContent?.trim() || 'Auto TweekIT';
+    const groqSelect = document.getElementById('groqModel');
+    const groqModelValue = groqSelect?.value || 'llama-3.2-90b-vision-preview';
+    const groqModelLabel = groqSelect?.selectedOptions?.[0]?.text?.trim() || groqModelValue;
+
+    selectedGroqModelLabel = groqModelLabel;
+    const aiModelBadge = document.getElementById('aiModel');
+    if (aiModelBadge) {
+        aiModelBadge.textContent = `Model: ${selectedGroqModelLabel}`;
+    }
+    setStepTitle(3, `Groq Analysis – ${selectedGroqModelLabel}`);
+
+    let autoStrategy = null;
+    if (modeValue === 'auto') {
+        if (selectedFile) {
+            autoStrategy = determineAutoStrategy(selectedFile.name);
+        }
+        const autoLabel = autoStrategy?.label || 'AI optimization';
+        setStepTitle(1, 'Selecting Best Workflow');
+        setStepTitle(2, `TweekIT Conversion – ${autoLabel}`);
+        updateStep(1, 'active', 'Analyzing file to choose best workflow...');
+    } else {
+        setStepTitle(2, `TweekIT Conversion – ${optionTitle}`);
+        updateStep(1, 'active', 'Preparing file...');
+    }
 
     // Timing phases
     const timings = {
@@ -200,8 +296,6 @@ async function processFile() {
 
     try {
         // Step 1: Show E2B sandbox creation and file preparation
-        updateStep(1, 'active', 'Preparing file...');
-
         timings.uploadStart = Date.now();
 
         // Read file as base64
@@ -209,15 +303,20 @@ async function processFile() {
 
         timings.uploadComplete = Date.now();
         const uploadTime = ((timings.uploadComplete - timings.uploadStart) / 1000).toFixed(2);
-        updateStep(1, 'complete', `File ready (${uploadTime}s)`);
+        if (modeValue === 'auto') {
+            const autoLabel = autoStrategy?.label || 'AI optimization';
+            updateStep(1, 'complete', `Workflow selected (${uploadTime}s): ${autoLabel}`);
+        } else {
+            updateStep(1, 'complete', `File ready (${uploadTime}s)`);
+        }
 
         // Step 2: Show conversion
-        updateStep(2, 'active', 'Sending to TweekIT...');
+        const conversionLabel = modeValue === 'auto'
+            ? (autoStrategy?.description || 'AI optimization')
+            : optionTitle;
+        updateStep(2, 'active', `Sending to TweekIT – ${conversionLabel}...`);
 
         timings.processingStart = Date.now();
-
-        // Get conversion mode from radio buttons
-        const modeValue = document.querySelector('input[name="conversionMode"]:checked')?.value || 'auto';
 
         // Determine output format and conversion mode based on selection
         let outputFormat = 'pdf';
@@ -225,9 +324,14 @@ async function processFile() {
         let pageNumber = 1;
 
         if (modeValue === 'auto') {
-            // Auto mode: Let AI decide (for now, default to preview)
-            conversionMode = 'auto';
-            outputFormat = 'pdf';  // Can be analyzed by AI
+            if (autoStrategy) {
+                outputFormat = autoStrategy.outputFormat;
+                conversionMode = autoStrategy.conversionMode;
+                pageNumber = autoStrategy.pageNumber ?? 1;
+            } else {
+                conversionMode = 'auto';
+                outputFormat = 'pdf';  // Fallback
+            }
         } else if (modeValue === 'image') {
             // Web ready image mode - save as desired output format
             const imageFormat = document.getElementById('imageFormat')?.value || 'png';
@@ -255,7 +359,7 @@ async function processFile() {
                 file_base64: base64File.split(',')[1], // Remove data URL prefix
                 filename: selectedFile.name,
                 output_format: outputFormat,
-                use_vision: false,
+                groq_model: groqModelValue,
                 conversion_mode: conversionMode,
                 page_number: pageNumber
             })
@@ -278,10 +382,11 @@ async function processFile() {
 
         // Calculate processing time
         const processingTime = ((timings.processingComplete - timings.processingStart) / 1000).toFixed(2);
-        updateStep(2, 'complete', `Converted in ${processingTime}s`);
+        updateStep(2, 'complete', `${conversionLabel} (${processingTime}s)`);
 
         // Step 3: Show analysis
-        updateStep(3, 'active', 'Analyzing with Groq AI...');
+        const groqLabelForSteps = selectedGroqModelLabel || 'Groq AI';
+        updateStep(3, 'active', `Analyzing with ${groqLabelForSteps}...`);
 
         timings.analysisStart = Date.now();
 
@@ -291,7 +396,7 @@ async function processFile() {
         timings.analysisComplete = Date.now();
         const analysisTime = ((timings.analysisComplete - timings.analysisStart) / 1000).toFixed(2);
 
-        updateStep(3, 'complete', `Analyzed in ${analysisTime}s`);
+        updateStep(3, 'complete', `${groqLabelForSteps} (${analysisTime}s)`);
 
         // Calculate total time from button press
         const totalTime = ((timings.analysisComplete - timings.buttonPressed) / 1000).toFixed(2);
@@ -314,9 +419,9 @@ async function processFile() {
 
         // If response has error_details, show collapsible details
         if (error.response && error.response.error_details) {
-            showError(error.response.error, error.response.error_details);
+            showError(error.response.error, error.response.error_details, error.response);
         } else {
-            showError(error.message || 'An unexpected error occurred');
+            showError(error.message || 'An unexpected error occurred', null, error.response);
         }
     }
 }
@@ -344,12 +449,13 @@ function updateStep(stepNumber, status, timeText = '') {
     }
 
     // Update time text
-    if (timeText) {
-        time.textContent = timeText;
+    if (time) {
+        time.textContent = timeText || '';
     }
 }
 
 function resetProgress() {
+    resetStepTitles();
     for (let i = 1; i <= 3; i++) {
         updateStep(i, 'pending', '');
         document.getElementById(`icon${i}`).textContent = i;
@@ -393,16 +499,40 @@ function showResults(result) {
     }
 
     // Update AI analysis
-    document.getElementById('aiModel').textContent = `Model: ${result.analysis.model}`;
-    document.getElementById('aiAnalysis').textContent = result.analysis.summary;
+    const analysisModel = result.analysis?.model;
+    let modelDisplay = analysisModel || selectedGroqModelLabel || 'Groq Model';
+    if (analysisModel && selectedGroqModelLabel && analysisModel !== selectedGroqModelLabel) {
+        modelDisplay = `${analysisModel} (${selectedGroqModelLabel})`;
+    }
+    document.getElementById('aiModel').textContent = `Model: ${modelDisplay}`;
+    document.getElementById('aiAnalysis').textContent = result.analysis?.summary || 'Analysis unavailable.';
+
+    // Scroll back to upload area after a brief delay
+    setTimeout(() => {
+        document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 500);
 }
 
-function showError(message, details = null) {
-    // Hide progress
+function showError(message, details = null, meta = null) {
     document.getElementById('progressSection').style.display = 'none';
+    document.getElementById('uploadSection').style.display = 'grid';
+
+    // Scroll back to upload area
+    setTimeout(() => {
+        document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 
     // Show error
     const errorDiv = document.getElementById('errorMessage');
+
+    let hintHtml = '';
+    if (meta && meta.error_code === 'unsupported_format') {
+        hintHtml = `
+            <div style="margin-top: 12px; font-size: 13px; color: rgba(226, 232, 240, 0.75);">
+                We logged this format so the team can add support. Try Auto TweekIT or pick another output for now.
+            </div>
+        `;
+    }
 
     if (details) {
         // Create collapsible error with details
@@ -412,27 +542,27 @@ function showError(message, details = null) {
                 <summary>Technical Details ▸</summary>
                 <pre>${details}</pre>
             </details>
+            ${hintHtml}
         `;
     } else {
-        errorDiv.textContent = `❌ ${message}`;
+        errorDiv.innerHTML = `❌ ${message}${hintHtml}`;
     }
 
     errorDiv.style.display = 'block';
-
-    // Show upload section again
-    setTimeout(() => {
-        document.getElementById('uploadSection').style.display = 'block';
-    }, 2000);
 }
 
 function reset() {
     selectedFile = null;
+    selectedGroqModelLabel = null;
     fileInput.value = '';
 
-    document.getElementById('uploadSection').style.display = 'block';
+    document.getElementById('uploadSection').style.display = 'grid';
     document.getElementById('progressSection').style.display = 'none';
     document.getElementById('resultsSection').style.display = 'none';
     document.getElementById('errorMessage').style.display = 'none';
+
+    // Scroll to top of page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function fileToBase64(file) {
@@ -497,8 +627,22 @@ function downloadFile() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
+        // Clear the file data to prevent re-download
+        currentResult.converted_file = null;
+
         // Show purge notification
         showPurgeNotification();
+
+        // Disable download button after purge - find all download buttons in results section
+        const downloadButtons = document.querySelectorAll('#resultsSection button.btn-primary');
+        downloadButtons.forEach(btn => {
+            if (btn.textContent.includes('Download')) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.innerHTML = '✓ Downloaded & Purged';
+            }
+        });
 
     } catch (error) {
         console.error('Download error:', error);
@@ -629,7 +773,7 @@ function viewHistory() {
 }
 
 // Handle TweekIT button click for manual mode
-function handleTweekITConversion() {
+async function handleTweekITConversion() {
     // Get selected conversion mode
     const selectedMode = document.querySelector('input[name="conversionMode"]:checked')?.value;
 
@@ -638,15 +782,10 @@ function handleTweekITConversion() {
         return;
     }
 
-    // If URL mode, validate URL and process differently
-    if (selectedMode === 'url') {
-        const urlInput = document.getElementById('fileUrl')?.value;
-        if (!urlInput || !urlInput.trim()) {
-            alert('Please enter a URL to convert');
-            document.getElementById('fileUrl')?.focus();
-            return;
-        }
+    // Check if URL is provided
+    const urlInput = document.getElementById('fileUrl')?.value?.trim();
 
+    if (urlInput) {
         // Validate URL format
         try {
             new URL(urlInput);
@@ -656,12 +795,35 @@ function handleTweekITConversion() {
             return;
         }
 
-        // Process URL conversion
-        processUrlConversion(urlInput);
+        // Fetch file from URL and process
+        try {
+            const response = await fetch(urlInput);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
+            }
+
+            // Get filename from URL or Content-Disposition header
+            let filename = urlInput.split('/').pop().split('?')[0] || 'downloaded-file';
+            const contentDisposition = response.headers.get('content-disposition');
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (filenameMatch) filename = filenameMatch[1];
+            }
+
+            // Convert to blob and create File object
+            const blob = await response.blob();
+            selectedFile = new File([blob], filename, { type: blob.type });
+
+            // Process the file
+            processFile();
+        } catch (error) {
+            alert(`Failed to fetch file from URL: ${error.message}`);
+            console.error('URL fetch error:', error);
+        }
     } else {
         // For file-based modes, ensure a file is selected
         if (!selectedFile) {
-            alert('Please select a file to process');
+            alert('Please select a file to process or provide a URL');
             fileInput.click();
             return;
         }
@@ -671,10 +833,37 @@ function handleTweekITConversion() {
     }
 }
 
-// Process URL conversion (placeholder for backend implementation)
-async function processUrlConversion(url) {
-    alert('URL conversion coming soon!\n\nThis feature will fetch and convert files directly from URLs using TweekIT\'s convert_url functionality.\n\nFor now, please download the file and upload it manually.');
-}
+// Monitor URL input to change button text and behavior dynamically
+document.addEventListener('DOMContentLoaded', function () {
+    const fileUrlInput = document.getElementById('fileUrl');
+    const selectFileBtn = document.getElementById('selectFileBtn');
+    const fileInput = document.getElementById('fileInput');
+
+    if (fileUrlInput && selectFileBtn && fileInput) {
+        // Function to update button based on URL input
+        function updateButton() {
+            if (fileUrlInput.value.trim()) {
+                selectFileBtn.textContent = 'Convert from URL';
+                selectFileBtn.onclick = function (e) {
+                    e.stopPropagation();
+                    handleTweekITConversion();
+                };
+            } else {
+                selectFileBtn.textContent = 'Select File';
+                selectFileBtn.onclick = function (e) {
+                    e.stopPropagation();
+                    fileInput.click();
+                };
+            }
+        }
+
+        // Set initial state
+        updateButton();
+
+        // Update on input change
+        fileUrlInput.addEventListener('input', updateButton);
+    }
+});
 
 // Initial check - test API health
 fetch('/health')

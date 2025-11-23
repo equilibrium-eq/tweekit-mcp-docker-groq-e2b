@@ -70,23 +70,130 @@ class E2BDemoAgent:
         try:
             with Sandbox.create(api_key=self.e2b_api_key, timeout=60) as sandbox:
                 print("Installing dependencies in E2B sandbox...")
-                sandbox.run_code("!pip install -q fastmcp nest_asyncio")
+                sandbox.run_code("!pip install -q httpx nest_asyncio")
 
                 print("Testing TweekIT MCP server connectivity...")
                 code = """
 import asyncio
+import json
+import httpx
 import nest_asyncio
-from fastmcp import Client
 
-nest_asyncio.apply()
+BASE_URL = "https://mcp.tweekit.io/mcp"
+PROTOCOL_VERSION = "2025-06-18"
+CLIENT_INFO = {"name": "e2b-demo-agent", "version": "0.1.0"}
+
+async def handshake(client: httpx.AsyncClient) -> str:
+    response = await client.get(
+        BASE_URL,
+        headers={"Accept": "text/event-stream"}
+    )
+    session_id = response.headers.get("mcp-session-id")
+    if not session_id:
+        for line in response.text.splitlines():
+            if line.startswith("data:"):
+                try:
+                    data = json.loads(line[5:].strip())
+                    session_id = data.get("sessionId")
+                    if session_id:
+                        break
+                except json.JSONDecodeError:
+                    continue
+    if not session_id:
+        if response.status_code not in (200, 400):
+            response.raise_for_status()
+        raise RuntimeError("Handshake succeeded but no mcp-session-id header was returned")
+    return session_id
+
+def parse_sse(text: str):
+    payload = {}
+    for line in text.splitlines():
+        if line.startswith("data:"):
+            try:
+                payload = json.loads(line[5:].strip())
+                break
+            except json.JSONDecodeError:
+                continue
+    return payload or {"raw": text}
+
+def build_headers(session_id: str) -> dict[str, str]:
+    return {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+        "mcp-session-id": session_id,
+    }
+
+async def send_request(client: httpx.AsyncClient, session_id: str, payload: dict) -> dict | None:
+    response = await client.post(
+        BASE_URL,
+        headers=build_headers(session_id),
+        json=payload
+    )
+    if response.status_code == 202:
+        return None
+    content_type = response.headers.get("content-type", "")
+    if "application/json" in content_type:
+        return response.json()
+    if "text/event-stream" in content_type:
+        return parse_sse(response.text)
+    try:
+        return response.json()
+    except json.JSONDecodeError:
+        return {"raw": response.text}
+
+async def initialize_session(client: httpx.AsyncClient, session_id: str):
+    init_payload = {
+        "jsonrpc": "2.0",
+        "id": 0,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": PROTOCOL_VERSION,
+            "capabilities": {},
+            "clientInfo": CLIENT_INFO,
+        },
+    }
+    init_response = await send_request(client, session_id, init_payload)
+    if isinstance(init_response, dict) and init_response.get("error"):
+        raise RuntimeError(f"Initialize failed: {init_response['error']}")
+
+    # Send initialized notification (fire-and-forget)
+    await send_request(
+        client,
+        session_id,
+        {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized",
+            "params": None,
+        },
+    )
 
 async def main():
-    async with Client('https://mcp.tweekit.io/mcp/') as client:
-        tools = await client.list_tools()
-        names = [tool.name for tool in tools]
-        print("✓ TweekIT MCP Connected!")
-        print(f"✓ Found {len(names)} tools: {names}")
+    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        session_id = await handshake(client)
+        await initialize_session(client, session_id)
 
+        payload = await send_request(
+            client,
+            session_id,
+            {"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
+        ) or {}
+
+        if isinstance(payload, dict) and payload.get("error"):
+            raise RuntimeError(f"tools/list failed: {payload['error']}")
+
+        tools_block = payload.get("result") if isinstance(payload, dict) else None
+        if isinstance(tools_block, dict) and "tools" not in tools_block:
+            tools_block = tools_block.get("data", tools_block)
+
+        tools = tools_block.get("tools") if isinstance(tools_block, dict) else None
+        if isinstance(tools, list):
+            names = [tool.get("name") for tool in tools]
+            print("✓ TweekIT MCP Connected!")
+            print(f"✓ Found {len(names)} tools: {names}")
+        else:
+            raise RuntimeError(f"Unexpected tools/list response: {payload}")
+
+nest_asyncio.apply()
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
 """
@@ -122,40 +229,161 @@ loop.run_until_complete(main())
             image_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
 
         try:
-            with Sandbox.create(api_key=self.e2b_api_key, timeout=90) as sandbox:
+            with Sandbox.create(api_key=self.e2b_api_key, timeout=120) as sandbox:
                 print("Installing dependencies...")
-                sandbox.run_code("!pip install -q fastmcp nest_asyncio")
+                sandbox.run_code("!pip install -q httpx nest_asyncio")
 
                 print("Converting image via TweekIT MCP...")
                 code = f"""
 import asyncio
+import json
+import httpx
 import nest_asyncio
-from fastmcp import Client
 
-nest_asyncio.apply()
+BASE_URL = "https://mcp.tweekit.io/mcp"
+PROTOCOL_VERSION = "2025-06-18"
+CLIENT_INFO = {{"name": "e2b-demo-agent", "version": "0.1.0"}}
+
+async def handshake(client: httpx.AsyncClient) -> str:
+    response = await client.get(
+        BASE_URL,
+        headers={{"Accept": "text/event-stream"}}
+    )
+    session_id = response.headers.get("mcp-session-id")
+    if not session_id:
+        for line in response.text.splitlines():
+            if line.startswith("data:"):
+                try:
+                    data = json.loads(line[5:].strip())
+                    session_id = data.get("sessionId")
+                    if session_id:
+                        break
+                except json.JSONDecodeError:
+                    continue
+    if not session_id:
+        if response.status_code not in (200, 400):
+            response.raise_for_status()
+        raise RuntimeError("Handshake succeeded but no mcp-session-id header was returned")
+    return session_id
+
+def parse_sse(text: str):
+    payload = {{}}
+    for line in text.splitlines():
+        if line.startswith("data:"):
+            try:
+                payload = json.loads(line[5:].strip())
+                break
+            except json.JSONDecodeError:
+                continue
+    return payload or {{"raw": text}}
+
+def build_headers(session_id: str) -> dict[str, str]:
+    return {{
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+        "mcp-session-id": session_id,
+    }}
+
+async def send_request(client: httpx.AsyncClient, session_id: str, payload: dict) -> dict | None:
+    response = await client.post(
+        BASE_URL,
+        headers=build_headers(session_id),
+        json=payload
+    )
+    if response.status_code == 202:
+        return None
+    content_type = response.headers.get("content-type", "")
+    if "application/json" in content_type:
+        return response.json()
+    if "text/event-stream" in content_type:
+        return parse_sse(response.text)
+    try:
+        return response.json()
+    except json.JSONDecodeError:
+        return {{"raw": response.text}}
+
+async def initialize_session(client: httpx.AsyncClient, session_id: str):
+    init_payload = {{
+        "jsonrpc": "2.0",
+        "id": 0,
+        "method": "initialize",
+        "params": {{
+            "protocolVersion": PROTOCOL_VERSION,
+            "capabilities": {{}},
+            "clientInfo": CLIENT_INFO,
+        }},
+    }}
+    init_response = await send_request(client, session_id, init_payload)
+    if isinstance(init_response, dict) and init_response.get("error"):
+        raise RuntimeError(f"Initialize failed: {{init_response['error']}}")
+
+    await send_request(
+        client,
+        session_id,
+        {{
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized",
+            "params": None,
+        }},
+    )
+
+def decode_length(payload):
+    if isinstance(payload, dict):
+        result_block = payload.get("result") or payload.get("data") or payload
+        if isinstance(result_block, dict):
+            content = result_block.get("content")
+            if isinstance(content, list) and content:
+                part = content[0]
+                if isinstance(part, dict):
+                    if "blob" in part:
+                        return len(part["blob"])
+                    if "data" in part:
+                        return len(part["data"])
+                    if "text" in part:
+                        return len(part["text"])
+            if "result" in result_block and isinstance(result_block["result"], dict):
+                return decode_length(result_block["result"])
+    return 0
 
 async def main():
-    async with Client('https://mcp.tweekit.io/mcp/') as client:
-        params = {{
-            "apiKey": "{self.tweekit_api_key}",
-            "apiSecret": "{self.tweekit_api_secret}",
-            "blob": "{image_data}",
-            "inext": "png",
-            "outfmt": "png",
-            "width": 50,
-            "height": 50
-        }}
-        result = await client.call_tool('convert', params)
-        if result.content:
-            part = result.content[0]
-            print(f"✓ TweekIT Conversion Returned {{part.type}}")
-            if hasattr(part, 'data'):
-                print(f"✓ Payload size: {{len(part.data)}} bytes")
-        elif result.data:
-            print(f"✗ Conversion error: {{result.data}}")
-        else:
-            print("✗ Conversion returned empty response")
+    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+        session_id = await handshake(client)
+        await initialize_session(client, session_id)
 
+        payload = {{
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {{
+                "name": "convert",
+                "arguments": {{
+                    "apiKey": "{self.tweekit_api_key}",
+                    "apiSecret": "{self.tweekit_api_secret}",
+                    "blob": "{image_data}",
+                    "inext": "png",
+                    "outfmt": "png",
+                    "width": 50,
+                    "height": 50
+                }}
+            }}
+        }}
+        result_payload = await send_request(
+            client,
+            session_id,
+            payload
+        )
+        if isinstance(result_payload, dict) and result_payload.get("error"):
+            raise RuntimeError(f"convert failed: {{result_payload['error']}}")
+
+        size = decode_length(result_payload)
+        if size:
+            print("✓ TweekIT Conversion Returned payload")
+            print(f"✓ Payload size: {{size}} bytes")
+        else:
+            print("⚠️ Unable to determine payload size from response")
+            print(result_payload)
+
+nest_asyncio.apply()
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
 """

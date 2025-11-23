@@ -1,5 +1,19 @@
 # TweekIT MCP Server
 
+<p align="center">
+  <a href="https://www.e2b.dev" target="_blank" rel="noopener noreferrer">
+    <img src="docs/assets/e2b-logo.svg" alt="E2B" height="56">
+  </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://groq.com/" target="_blank" rel="noopener noreferrer">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Groq_logo.svg" alt="Groq" height="56">
+  </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.docker.com/" target="_blank" rel="noopener noreferrer">
+    <img src="https://www.docker.com/app/uploads/2022/03/Moby-logo.png" alt="Docker" height="56">
+  </a>
+</p>
+
 *Ingest and Convert Just About Any Filetype Into AI Workflows*
 
 Current version: v1.6.01
