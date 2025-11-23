@@ -91,6 +91,72 @@
             margin-top: 10px;
         }
 
+        /* Hamburger Menu */
+        .hamburger {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .hamburger:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .hamburger-icon {
+            color: white;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .nav-menu {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+            min-width: 200px;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+        }
+
+        .nav-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 12px 15px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            color: #667eea;
+        }
+
         .content {
             padding: 40px;
         }
@@ -347,12 +413,17 @@
         .footer-logos {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 30px;
+            flex-wrap: wrap;
         }
 
         .footer-logos img {
             height: 40px;
             width: auto;
+        }
+
+        .footer-logos .logo-with-label img {
+            height: 50px;  /* Larger CPUcoin logo */
         }
 
         .logo-with-label {
@@ -437,12 +508,25 @@
     </style>
 </head>
 <body>
+    <!-- Hamburger Menu -->
+    <div class="hamburger" onclick="toggleMenu()">
+        <span class="hamburger-icon">☰</span>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="nav-menu" id="navMenu">
+        <a href="/" onclick="closeMenu()">🏠 Home</a>
+        <a href="/press-release" onclick="closeMenu()">📄 Press Release</a>
+        <a href="https://github.com/equilibrium-team/tweekit-mcp" target="_blank" onclick="closeMenu()">💻 GitHub</a>
+        <a href="https://github.com/equilibrium-team/tweekit-mcp/releases" target="_blank" onclick="closeMenu()">📦 Download</a>
+    </nav>
+
     <div class="container">
         <div class="header">
             <div class="header-logo">
                 <img src="/static/assets/logo-white-logo-full-dark-bkg.png" alt="TweekIT">
             </div>
-            <h1><img src="/static/assets/tweekit-icon-square-150.png" alt="TweekIT Icon">Universal AI File Ingestion</h1>
+            <h1><img src="/static/assets/tweekit-icon-square-150.png" alt="TweekIT Icon">InstantOn Enable Your Agentic Workflows</h1>
             <p>E2B + TweekIT + Groq = Zero-Friction Workflows</p>
             <p class="subtitle">
                 Now optimizing and scaling a visual asset is just a "tweekit" command away. Don't error and continue. Error and tweekit, then continue with the workflow making users happy. Multi-page files AI can't read? TweekIT automatically converts to PDF so AI can ingest and continue. The world of personal and enterprise data is now ingestible by all AI. <em>Just TweekIT™</em>
@@ -480,51 +564,88 @@
                         </label>
                     </div>
 
-                    <!-- Manual Options -->
+                    <!-- Manual Mode -->
                     <div style="background: #f5f7fa; padding: 20px; border-radius: 12px; border: 2px solid #e0e0e0;" onclick="event.stopPropagation()">
-                        <div style="font-size: 14px; font-weight: 600; color: #666; margin-bottom: 15px; text-align: center;">Manual Options</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #666; margin-bottom: 15px; text-align: center;">Manual Mode - Select a desired output</div>
 
                         <!-- Web Ready Image -->
                         <div style="margin-bottom: 15px; padding: 12px; background: white; border-radius: 8px;" onclick="event.stopPropagation()">
                             <label style="cursor: pointer; display: flex; align-items: center; gap: 10px;" onclick="event.stopPropagation()">
                                 <input type="radio" name="conversionMode" value="image" style="cursor: pointer; width: 18px; height: 18px;" onclick="event.stopPropagation()">
-                                <span style="font-size: 14px; font-weight: 500; flex: 1;">🖼️ Any image, any page, any filetype out to web ready image</span>
+                                <span style="font-size: 14px; font-weight: 500; flex: 1;">🖼️ Save as Web Ready Image</span>
                             </label>
-                            <div style="margin-left: 28px; margin-top: 8px; display: flex; gap: 10px; align-items: center;" onclick="event.stopPropagation()">
-                                <label style="font-size: 12px; color: #666;">Format:</label>
+                            <div style="margin-left: 28px; margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;" onclick="event.stopPropagation()">
+                                <label style="font-size: 12px; color: #666;">Output Format:</label>
                                 <select id="imageFormat" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;" onclick="event.stopPropagation()">
                                     <option value="png">PNG</option>
                                     <option value="gif">GIF</option>
                                     <option value="jpg">JPEG</option>
                                 </select>
-                                <label style="font-size: 12px; color: #666; margin-left: 10px;">Page:</label>
-                                <select id="pageNumber" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;" onclick="event.stopPropagation()">
-                                    <option value="1">First Page</option>
-                                    <option value="all">All Pages</option>
-                                    <option value="2">Page 2</option>
-                                    <option value="3">Page 3</option>
-                                    <option value="4">Page 4</option>
-                                    <option value="5">Page 5</option>
-                                </select>
+                                <label style="font-size: 12px; color: #666; margin-left: 10px;">Page #:</label>
+                                <input type="number" id="pageNumber" min="1" value="1" placeholder="1" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px; width: 60px;" onclick="event.stopPropagation()">
                             </div>
+                            <div style="margin-left: 28px; margin-top: 4px; font-size: 11px; color: #666;">Any file → image format. Single images save as page 1</div>
                         </div>
 
                         <!-- Text Extraction -->
                         <div style="margin-bottom: 15px; padding: 12px; background: white; border-radius: 8px;" onclick="event.stopPropagation()">
                             <label style="cursor: pointer; display: flex; align-items: center; gap: 10px;" onclick="event.stopPropagation()">
                                 <input type="radio" name="conversionMode" value="extract" style="cursor: pointer; width: 18px; height: 18px;" onclick="event.stopPropagation()">
-                                <span style="font-size: 14px; font-weight: 500;">📄 Any complex filetype, Text Extraction (Markdown)</span>
+                                <span style="font-size: 14px; font-weight: 500;">📄 Save as Markdown Text</span>
                             </label>
-                            <div style="margin-left: 28px; margin-top: 4px; font-size: 11px; color: #666;">Full document text, formatted as Markdown</div>
+                            <div style="margin-left: 28px; margin-top: 4px; font-size: 11px; color: #666;">Full document text extraction, formatted as Markdown</div>
                         </div>
 
                         <!-- PDF Output -->
-                        <div style="padding: 12px; background: white; border-radius: 8px;" onclick="event.stopPropagation()">
+                        <div style="margin-bottom: 15px; padding: 12px; background: white; border-radius: 8px;" onclick="event.stopPropagation()">
                             <label style="cursor: pointer; display: flex; align-items: center; gap: 10px;" onclick="event.stopPropagation()">
                                 <input type="radio" name="conversionMode" value="pdf" style="cursor: pointer; width: 18px; height: 18px;" onclick="event.stopPropagation()">
-                                <span style="font-size: 14px; font-weight: 500;">📑 Any complex filetype, Return a PDF</span>
+                                <span style="font-size: 14px; font-weight: 500;">📑 Save as PDF</span>
                             </label>
                             <div style="margin-left: 28px; margin-top: 4px; font-size: 11px; color: #666;">Universal PDF format for any AI or viewer</div>
+                        </div>
+
+                        <!-- URL Conversion -->
+                        <div style="padding: 12px; background: white; border-radius: 8px; border: 2px solid #667eea;" onclick="event.stopPropagation()">
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 10px;" onclick="event.stopPropagation()">
+                                <input type="radio" name="conversionMode" value="url" style="cursor: pointer; width: 18px; height: 18px;" onclick="event.stopPropagation()">
+                                <span style="font-size: 14px; font-weight: 500; flex: 1;">🌐 Convert from URL</span>
+                            </label>
+                            <div style="margin-left: 28px; margin-top: 8px;" onclick="event.stopPropagation()">
+                                <input type="url" id="fileUrl" placeholder="https://example.com/document.pdf" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;" onclick="event.stopPropagation()">
+                                <div style="margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;" onclick="event.stopPropagation()">
+                                    <label style="font-size: 12px; color: #666;">Output Format:</label>
+                                    <select id="urlOutputFormat" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;" onclick="event.stopPropagation()">
+                                        <option value="png">PNG Image</option>
+                                        <option value="pdf">PDF</option>
+                                        <option value="md">Markdown</option>
+                                        <option value="jpg">JPEG</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="margin-left: 28px; margin-top: 4px; font-size: 11px; color: #666;">Fetch and convert any file from a URL</div>
+                        </div>
+
+                        <!-- TweekIT Button -->
+                        <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
+                            <button onclick="handleTweekITConversion()" style="
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                color: white;
+                                border: none;
+                                padding: 14px 32px;
+                                font-size: 16px;
+                                font-weight: 700;
+                                border-radius: 10px;
+                                cursor: pointer;
+                                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                                transition: all 0.3s ease;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'">
+                                <span style="font-size: 18px;">⚡</span>
+                                <span>TweekIT™</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -623,7 +744,7 @@
 
             <!-- Value Proposition -->
             <div class="value-prop">
-                <h2>Instant-On Agentic Workflows</h2>
+                <h2>InstantOn Enable Your Agentic Workflows</h2>
                 <p>
                     Once you deploy with Groq, Docker, and E2B, you have a safe, secure, highly available, and infinitely scalable system ready for all your agentic workflows. Whether you're building autonomous agents, processing user-uploaded documents in real-time, ingesting legacy enterprise data, or enabling AI assistants to understand any file format—the infrastructure is ready. No more "unsupported format" errors blocking your AI pipelines. No more manual conversion steps interrupting user experiences. Just seamless, instant-on file ingestion that scales with your ambitions. <em>Just TweekIT™</em>
                 </p>
@@ -651,6 +772,24 @@
                     <a href="#notices" style="color: #667eea; text-decoration: none;">Trademarks & Copyright</a>
                 </div>
             </div>
+
+            <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%); border-radius: 12px;">
+                <a href="https://groq.com" target="_blank" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #333; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="/static/assets/groq-logo.webp" alt="Groq" style="height: 40px; width: auto; margin-bottom: 8px; object-fit: contain;">
+                    <strong style="font-size: 14px;">Groq</strong>
+                    <span style="font-size: 11px; color: #666;">Ultra-Fast AI</span>
+                </a>
+                <a href="https://e2b.dev" target="_blank" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #333; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="/static/assets/e2b-logo.webp" alt="E2B" style="height: 40px; width: auto; margin-bottom: 8px; object-fit: contain;">
+                    <strong style="font-size: 14px;">E2B</strong>
+                    <span style="font-size: 11px; color: #666;">Secure Sandboxes</span>
+                </a>
+                <a href="https://docker.com" target="_blank" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #333; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="/static/assets/docker-logo.webp" alt="Docker" style="height: 40px; width: auto; margin-bottom: 8px; object-fit: contain;">
+                    <strong style="font-size: 14px;">Docker</strong>
+                    <span style="font-size: 11px; color: #666;">Container Platform</span>
+                </a>
+            </div>
         </div>
 
         <!-- Acknowledgments Section -->
@@ -662,8 +801,16 @@
                 <div style="margin-top: 20px;">
                     <p style="line-height: 1.8; color: #333; margin-bottom: 20px; text-align: center; max-width: 900px; margin-left: auto; margin-right: auto;">
                         This E2B Hackathon project started at midnight and was vibe-coded using all the latest tools.
-                        <a href="https://github.com/equilibrium-team/tweekit-mcp" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">View the open source TweekIT MCP repository →</a>
                     </p>
+
+                    <div style="display: flex; gap: 15px; justify-content: center; margin: 25px 0; flex-wrap: wrap;">
+                        <a href="https://github.com/equilibrium-team/tweekit-mcp" target="_blank" style="display: inline-block; background: #24292e; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.2)'">
+                            <span style="font-size: 18px;">🐙</span> Docker + E2B + TweekIT + Groq Hackathon Demo
+                        </a>
+                        <a href="https://github.com/equilibrium-team/tweekit-mcp" target="_blank" style="display: inline-block; background: white; color: #667eea; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; border: 2px solid #667eea; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            <span style="font-size: 18px;">⭐</span> TweekIT MCP Server Repository
+                        </a>
+                    </div>
 
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="/press-release" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'">
@@ -721,6 +868,36 @@
             </details>
         </div>
     </div>
+
+    <script>
+        // Hamburger menu functionality
+        function toggleMenu() {
+            const menu = document.getElementById('navMenu');
+            menu.classList.toggle('active');
+        }
+
+        function closeMenu() {
+            const menu = document.getElementById('navMenu');
+            menu.classList.remove('active');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('navMenu');
+            const hamburger = document.querySelector('.hamburger');
+
+            if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.getElementById('navMenu').classList.remove('active');
+            }
+        });
+    </script>
 
     <script src="/static/app.js"></script>
 </body>

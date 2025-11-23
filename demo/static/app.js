@@ -1,6 +1,103 @@
 // Demo Frontend Logic
 let selectedFile = null;
 let currentResult = null;
+let currentVersion = null;
+
+// Version checking
+async function checkForUpdates() {
+    try {
+        const response = await fetch('/version');
+        const versionInfo = await response.json();
+
+        if (!currentVersion) {
+            // First load - store version
+            currentVersion = versionInfo.version;
+            localStorage.setItem('appVersion', versionInfo.version);
+        } else if (currentVersion !== versionInfo.version) {
+            // Version changed - show update notification
+            showUpdateNotification(versionInfo.version);
+        }
+    } catch (error) {
+        console.error('Failed to check version:', error);
+    }
+}
+
+function showUpdateNotification(newVersion) {
+    const existingBanner = document.getElementById('updateBanner');
+    if (existingBanner) return; // Already showing
+
+    const banner = document.createElement('div');
+    banner.id = 'updateBanner';
+    banner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        text-align: center;
+        z-index: 10000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        animation: slideDown 0.3s ease-out;
+    `;
+
+    banner.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+            <span style="font-weight: 600;">🎉 New version available (v${newVersion})!</span>
+            <button onclick="hardRefresh()" style="
+                background: white;
+                color: #667eea;
+                border: none;
+                padding: 8px 20px;
+                border-radius: 20px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: transform 0.2s;
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                Refresh Now
+            </button>
+            <button onclick="document.getElementById('updateBanner').remove()" style="
+                background: transparent;
+                color: white;
+                border: 1px solid white;
+                padding: 8px 20px;
+                border-radius: 20px;
+                font-weight: 600;
+                cursor: pointer;
+            ">
+                Later
+            </button>
+        </div>
+    `;
+
+    document.body.prepend(banner);
+
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function hardRefresh() {
+    // Clear all caches and force reload
+    if (caches) {
+        caches.keys().then(names => {
+            names.forEach(name => caches.delete(name));
+        });
+    }
+    localStorage.setItem('appVersion', 'reloading');
+    window.location.reload(true);
+}
+
+// Check for updates on load and every 5 minutes
+checkForUpdates();
+setInterval(checkForUpdates, 5 * 60 * 1000);
 
 // File upload handling
 const fileInput = document.getElementById('fileInput');
@@ -56,19 +153,34 @@ async function processFile() {
     // Reset progress
     resetProgress();
 
-    try {
-        // Start timing
-        const startTime = Date.now();
+    // Timing phases
+    const timings = {
+        buttonPressed: Date.now(),
+        uploadStart: null,
+        uploadComplete: null,
+        processingStart: null,
+        processingComplete: null,
+        analysisStart: null,
+        analysisComplete: null
+    };
 
-        // Step 1: Show E2B sandbox creation
-        updateStep(1, 'active', 'Creating sandbox...');
+    try {
+        // Step 1: Show E2B sandbox creation and file preparation
+        updateStep(1, 'active', 'Preparing file...');
+
+        timings.uploadStart = Date.now();
 
         // Read file as base64
         const base64File = await fileToBase64(selectedFile);
 
+        timings.uploadComplete = Date.now();
+        const uploadTime = ((timings.uploadComplete - timings.uploadStart) / 1000).toFixed(2);
+        updateStep(1, 'complete', `File ready (${uploadTime}s)`);
+
         // Step 2: Show conversion
-        updateStep(1, 'complete', 'Sandbox created');
-        updateStep(2, 'active', 'Converting file...');
+        updateStep(2, 'active', 'Sending to TweekIT...');
+
+        timings.processingStart = Date.now();
 
         // Get conversion mode from radio buttons
         const modeValue = document.querySelector('input[name="conversionMode"]:checked')?.value || 'auto';
@@ -83,12 +195,12 @@ async function processFile() {
             conversionMode = 'auto';
             outputFormat = 'pdf';  // Can be analyzed by AI
         } else if (modeValue === 'image') {
-            // Web ready image mode
+            // Web ready image mode - save as desired output format
             const imageFormat = document.getElementById('imageFormat')?.value || 'png';
-            const pageSelect = document.getElementById('pageNumber')?.value || '1';
+            const pageInput = document.getElementById('pageNumber')?.value || '1';
             outputFormat = imageFormat;
             conversionMode = 'preview';
-            pageNumber = pageSelect === 'all' ? 'all' : parseInt(pageSelect);
+            pageNumber = parseInt(pageInput) || 1;  // Default to page 1 if invalid
         } else if (modeValue === 'extract') {
             // Text extraction mode
             outputFormat = 'md';
@@ -115,6 +227,8 @@ async function processFile() {
             })
         });
 
+        timings.processingComplete = Date.now();
+
         if (!response.ok) {
             throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
@@ -128,14 +242,33 @@ async function processFile() {
             throw error;
         }
 
+        // Calculate processing time
+        const processingTime = ((timings.processingComplete - timings.processingStart) / 1000).toFixed(2);
+        updateStep(2, 'complete', `Converted in ${processingTime}s`);
+
         // Step 3: Show analysis
-        updateStep(2, 'complete', `Converted in ${result.conversion.time}`);
-        updateStep(3, 'active', 'Analyzing...');
+        updateStep(3, 'active', 'Analyzing with Groq AI...');
+
+        timings.analysisStart = Date.now();
 
         // Simulate small delay for visual effect
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        updateStep(3, 'complete', `Analyzed in ${result.analysis.time}`);
+        timings.analysisComplete = Date.now();
+        const analysisTime = ((timings.analysisComplete - timings.analysisStart) / 1000).toFixed(2);
+
+        updateStep(3, 'complete', `Analyzed in ${analysisTime}s`);
+
+        // Calculate total time from button press
+        const totalTime = ((timings.analysisComplete - timings.buttonPressed) / 1000).toFixed(2);
+
+        // Add timing breakdown to result
+        result.timingBreakdown = {
+            upload: uploadTime,
+            processing: processingTime,
+            analysis: analysisTime,
+            total: totalTime
+        };
 
         // Show results
         setTimeout(() => {
@@ -205,8 +338,24 @@ function showResults(result) {
     document.getElementById('conversionFormat').textContent =
         `${result.conversion.input_format} → ${result.conversion.output_format}`;
     document.getElementById('fileSize').textContent = result.conversion.size;
-    document.getElementById('processingTime').textContent = `${result.total_time}s`;
-    document.getElementById('totalTime').textContent = `Completed in ${result.total_time} seconds`;
+
+    // Update timing with detailed breakdown
+    if (result.timingBreakdown) {
+        const breakdown = result.timingBreakdown;
+        document.getElementById('processingTime').textContent = `${breakdown.total}s`;
+        document.getElementById('totalTime').innerHTML = `
+            <strong>Completed in ${breakdown.total}s</strong><br>
+            <span style="font-size: 13px; color: #666; line-height: 1.6;">
+                ⏱️ File prep: ${breakdown.upload}s<br>
+                🔄 TweekIT conversion: ${breakdown.processing}s<br>
+                🤖 AI analysis: ${breakdown.analysis}s
+            </span>
+        `;
+    } else {
+        // Fallback to old format
+        document.getElementById('processingTime').textContent = `${result.total_time}s`;
+        document.getElementById('totalTime').textContent = `Completed in ${result.total_time} seconds`;
+    }
 
     // Update AI analysis
     document.getElementById('aiModel').textContent = `Model: ${result.analysis.model}`;
@@ -262,18 +411,61 @@ function fileToBase64(file) {
 
 // Download converted file
 function downloadFile() {
-    if (!currentResult) {
-        alert('No file to download');
+    if (!currentResult || !currentResult.converted_file) {
+        alert('No file available to download');
         return;
     }
 
-    // For now, show an informative message
-    // In a future version, we'll modify the backend to return the converted file
-    const ext = currentResult.conversion.output_format.toLowerCase();
-    const mode = currentResult.conversion.web_optimized ? 'preview' :
-                 (ext === 'md' ? 'extract' : 'unknown');
+    try {
+        // Get file details
+        const ext = currentResult.conversion.output_format.toLowerCase();
+        const inputExt = currentResult.conversion.input_format.toLowerCase();
+        const originalFilename = selectedFile?.name || 'converted_file';
+        const baseFilename = originalFilename.substring(0, originalFilename.lastIndexOf('.')) || 'converted_file';
 
-    alert(`Download functionality coming soon!\n\nYour file was converted to: ${ext.toUpperCase()}\nMode: ${mode}\n\nNext version will include automatic file downloads.`);
+        // Create download filename
+        const downloadFilename = `${baseFilename}.${ext}`;
+
+        // Convert base64 to blob
+        const base64Data = currentResult.converted_file;
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        // Determine MIME type
+        const mimeTypes = {
+            'pdf': 'application/pdf',
+            'png': 'image/png',
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'gif': 'image/gif',
+            'md': 'text/markdown',
+            'txt': 'text/plain',
+            'html': 'text/html'
+        };
+        const mimeType = mimeTypes[ext] || 'application/octet-stream';
+
+        // Create blob
+        const blob = new Blob([bytes], { type: mimeType });
+
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = downloadFilename;
+        document.body.appendChild(a);
+        a.click();
+
+        // Cleanup
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Download error:', error);
+        alert('Failed to download file. Please try converting again.');
+    }
 }
 
 // Save conversion to history (localStorage)
@@ -325,6 +517,59 @@ function viewHistory() {
     }
 
     alert(historyText);
+}
+
+// Handle TweekIT button click for manual mode
+function handleTweekITConversion() {
+    // Get selected conversion mode
+    const selectedMode = document.querySelector('input[name="conversionMode"]:checked')?.value;
+
+    if (!selectedMode) {
+        alert('Please select a conversion mode (Auto TweekIT or Manual Mode option)');
+        return;
+    }
+
+    // If URL mode, validate URL and process differently
+    if (selectedMode === 'url') {
+        const urlInput = document.getElementById('fileUrl')?.value;
+        if (!urlInput || !urlInput.trim()) {
+            alert('Please enter a URL to convert');
+            document.getElementById('fileUrl')?.focus();
+            return;
+        }
+
+        // Validate URL format
+        try {
+            new URL(urlInput);
+        } catch (e) {
+            alert('Please enter a valid URL (e.g., https://example.com/document.pdf)');
+            document.getElementById('fileUrl')?.focus();
+            return;
+        }
+
+        // Process URL conversion
+        processUrlConversion(urlInput);
+    } else {
+        // For file-based modes, ensure a file is selected
+        if (!selectedFile) {
+            alert('Please select a file to process');
+            fileInput.click();
+            return;
+        }
+
+        // Process file normally
+        processFile();
+    }
+}
+
+// Process URL conversion (placeholder for backend implementation)
+async function processUrlConversion(url) {
+    alert('URL conversion coming soon!\n\nThis feature will fetch and convert files directly from URLs using TweekIT\'s convert_url functionality.\n\nFor now, please download the file and upload it manually.');
+
+    // TODO: Implement URL conversion backend
+    // Will call /api/process-url endpoint with:
+    // - url: the file URL
+    // - output_format: selected format from urlOutputFormat dropdown
 }
 
 // Initial check - test API health

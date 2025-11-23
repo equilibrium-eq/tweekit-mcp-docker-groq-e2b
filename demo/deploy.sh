@@ -30,6 +30,15 @@ if [ -z "$TWEEKIT_API_KEY" ] || [ -z "$TWEEKIT_API_SECRET" ] || [ -z "$E2B_API_K
     fi
 fi
 
+# Build environment variables string
+ENV_VARS="TWEEKIT_API_KEY=$TWEEKIT_API_KEY,TWEEKIT_API_SECRET=$TWEEKIT_API_SECRET,E2B_API_KEY=$E2B_API_KEY,GROQ_API_KEY=$GROQ_API_KEY,TUNNEL_URL=https://mcp.tweekit.io/mcp"
+
+# Add Discord webhook if configured
+if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+    ENV_VARS="$ENV_VARS,DISCORD_WEBHOOK_URL=$DISCORD_WEBHOOK_URL,ERROR_REPORTING_ENABLED=$ERROR_REPORTING_ENABLED"
+    echo "📊 Discord error reporting enabled"
+fi
+
 # Deploy to Cloud Run
 gcloud run deploy "$SERVICE_NAME" \
     --source . \
@@ -37,7 +46,7 @@ gcloud run deploy "$SERVICE_NAME" \
     --region "$REGION" \
     --platform "$PLATFORM" \
     --allow-unauthenticated \
-    --set-env-vars "TWEEKIT_API_KEY=$TWEEKIT_API_KEY,TWEEKIT_API_SECRET=$TWEEKIT_API_SECRET,E2B_API_KEY=$E2B_API_KEY,GROQ_API_KEY=$GROQ_API_KEY,TUNNEL_URL=https://mcp.tweekit.io/mcp" \
+    --set-env-vars "$ENV_VARS" \
     --memory 1Gi \
     --cpu 1 \
     --timeout 300 \

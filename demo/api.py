@@ -63,6 +63,7 @@ class ProcessResponse(BaseModel):
     success: bool
     conversion: Optional[dict] = None
     analysis: Optional[dict] = None
+    converted_file: Optional[str] = None  # Base64 encoded converted file
     error: Optional[str] = None
     error_details: Optional[str] = None  # Technical details for expandable section
     total_time: Optional[float] = None
@@ -117,6 +118,20 @@ async def root():
     if index_path.exists():
         return FileResponse(index_path)
     return {"message": "Demo API is running. Frontend not found."}
+
+
+@app.get("/version")
+async def get_version():
+    """Get current deployed version"""
+    version_file = Path(__file__).parent / "VERSION"
+    if version_file.exists():
+        version = version_file.read_text().strip()
+        return {
+            "version": version,
+            "deployed_at": os.getenv("K_REVISION", "unknown"),  # Cloud Run revision
+            "service": "e2b-hackathon-demo"
+        }
+    return {"version": "unknown", "service": "e2b-hackathon-demo"}
 
 
 @app.get("/press-release")
@@ -240,6 +255,12 @@ async def convert():
                     print("SUCCESS")
                     print(len(content.blob))
                     return content.blob
+                # Check for ImageContent with data attribute
+                elif hasattr(content, 'data') and hasattr(content, 'type'):
+                    print(f"INFO: Found {{content.type}} content")
+                    print("SUCCESS")
+                    print(len(content.data))
+                    return content.data
                 # Check for text content
                 elif hasattr(content, 'text'):
                     # Could be TextContent or an error message
@@ -258,6 +279,10 @@ async def convert():
                         print("SUCCESS")
                         print(len(content['blob']))
                         return content['blob']
+                    elif 'data' in content:
+                        print("SUCCESS")
+                        print(len(content['data']))
+                        return content['data']
                     elif 'text' in content:
                         print(f"INFO: Dict text: {{content['text'][:200]}}")
                         if len(content['text']) > 100:
@@ -451,6 +476,7 @@ result = asyncio.run(convert())
                 "summary": analysis_text,
                 "time": f"{analysis_time:.2f}s"
             },
+            converted_file=converted_file,  # Include the base64 file data for download
             total_time=round(total_time, 2)
         )
 
