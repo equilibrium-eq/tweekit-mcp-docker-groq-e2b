@@ -507,6 +507,17 @@ function showResults(result) {
     document.getElementById('aiModel').textContent = `Model: ${modelDisplay}`;
     document.getElementById('aiAnalysis').textContent = result.analysis?.summary || 'Analysis unavailable.';
 
+    // Re-enable download button for new results
+    const downloadButtons = document.querySelectorAll('#resultsSection button.btn-primary');
+    downloadButtons.forEach(btn => {
+        if (btn.textContent.includes('Download') || btn.textContent.includes('Purged')) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.innerHTML = '📥 Download File';
+        }
+    });
+
     // Scroll back to upload area after a brief delay
     setTimeout(() => {
         document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
