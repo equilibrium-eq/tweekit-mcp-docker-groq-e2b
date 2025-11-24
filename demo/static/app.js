@@ -402,42 +402,31 @@ async function processFile() {
             : optionTitle;
         updateStep(2, 'active', `Processing in ephemeral sandbox – ${conversionLabel}...`);
 
+        // Use backend timing if present
+        const backendBreakdown = result.timingBreakdown || {};
         timings.processingStart = Date.now();
-
-        // Result is already parsed from XHR response
-        // Skip the fetch call since we used /api/upload which returns the same ProcessResponse structure
-
+        // If backend provides processing time, use it; otherwise compute elapsed
+        const processingTime = backendBreakdown.processing
+            ? backendBreakdown.processing
+            : ((Date.now() - timings.processingStart) / 1000).toFixed(2);
         timings.processingComplete = Date.now();
 
         if (!result.success) {
-            throw {
-                message: result.error || 'Processing failed',
-                response: result
-            };
+            throw { message: result.error || 'Processing failed', response: result };
         }
 
-        const processingTime = ((timings.processingComplete - timings.processingStart) / 1000).toFixed(2);
-
-        // Security confirmation update
+        // Update step with actual processing time
         updateStep(2, 'complete', `TweekIT Conversion Complete (${processingTime}s) – Ephemeral Cache Purged`);
 
         // Step 3: AI Analysis
         updateStep(3, 'active', 'Analyzing with Groq AI (Zero-Retention)...');
         timings.analysisStart = Date.now();
+        // Use backend analysis time if available
+        const analysisTime = backendBreakdown.analysis || ((Date.now() - timings.analysisStart) / 1000).toFixed(2);
+        // Calculate total time from backend if provided, else compute
+        const totalTime = backendBreakdown.total || ((Date.now() - timings.buttonPressed) / 1000).toFixed(2);
 
-        // Simulate analysis time if not provided (it's usually fast)
-        if (!result.analysis || !result.analysis.time) {
-            await new Promise(resolve => setTimeout(resolve, 800));
-        }
-
-        timings.analysisComplete = Date.now();
-        const analysisTime = ((timings.analysisComplete - timings.analysisStart) / 1000).toFixed(2);
-        updateStep(3, 'complete', `Analysis Complete (${analysisTime}s)`);
-
-        // Calculate total time from button press
-        const totalTime = ((timings.analysisComplete - timings.buttonPressed) / 1000).toFixed(2);
-
-        // Add timing breakdown to result
+        // Add timing breakdown to result (override with backend values if any)
         result.timingBreakdown = {
             upload: uploadTime,
             processing: processingTime,
@@ -445,10 +434,8 @@ async function processFile() {
             total: totalTime
         };
 
-        // Show results
-        setTimeout(() => {
-            showResults(result);
-        }, 500);
+        // Show results immediately after processing
+        showResults(result);
     } catch (error) {
         console.error('Processing error:', error);
 
@@ -608,22 +595,10 @@ function showResults(result) {
     document.getElementById('fileSize').textContent = result.conversion.size;
 
     // Update timing with detailed breakdown
-    if (result.timingBreakdown) {
-        const breakdown = result.timingBreakdown;
-        document.getElementById('processingTime').textContent = `${breakdown.total}s`;
-        document.getElementById('totalTime').innerHTML = `
-            <strong>Completed in ${breakdown.total}s</strong><br>
-            <span style="font-size: 13px; opacity: 0.8; line-height: 1.6;">
-                ⏱️ File prep: ${breakdown.upload}s<br>
-                🔄 TweekIT conversion: ${breakdown.processing}s<br>
-                🤖 AI analysis: ${breakdown.analysis}s
-            </span>
-        `;
-    } else {
-        // Fallback to old format
-        document.getElementById('processingTime').textContent = `${result.total_time}s`;
-        document.getElementById('totalTime').textContent = `Completed in ${result.total_time} seconds`;
-    }
+    // Hide progress section and show results (spinner will be displayed via progressSection)
+    document.getElementById('progressSection').style.display = 'none';
+    // Show results
+    showResults(result);
 
     // Update AI analysis
     const analysisModel = result.analysis?.model;

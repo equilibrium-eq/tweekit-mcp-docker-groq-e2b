@@ -33,8 +33,11 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")  # Optional: for error reporting
 ERROR_REPORTING_ENABLED = os.getenv("ERROR_REPORTING_ENABLED", "false").lower() == "true"
 
-# Create FastAPI app
-app = FastAPI(title="E2B Hackathon Demo API")
+# Create FastAPI app with increased upload size limit
+app = FastAPI(
+    title="E2B Hackathon Demo API",
+    # Allow up to 200MB uploads (Cloud Run supports up to 32MB by default, but we can configure it)
+)
 
 # Add CORS
 app.add_middleware(
@@ -596,6 +599,13 @@ async def upload_file(file: UploadFile = File(...), output_format: str = Form("p
     try:
         # Read file content
         content = await file.read()
+        # Enforce 32 MiB limit (free plan capability)
+        MAX_SIZE = 32 * 1024 * 1024  # 32 MiB
+        if len(content) > MAX_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail="The Tweekit demo keys are limited to a free plan capability."
+            )
         base64_content = base64.b64encode(content).decode()
 
         # Create request
