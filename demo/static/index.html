@@ -288,8 +288,10 @@
                     </div>
                 </div>
 
+                <div id="downloadTimer" class="download-timer" style="display: none;"></div>
                 <div class="action-bar">
                     <button class="btn-primary" onclick="downloadFile()">📥 Download File</button>
+                    <button class="btn-secondary" onclick="toggleMute()" id="muteBtn" title="Toggle Sound">🔊</button>
                     <button class="btn-secondary" onclick="reset()">Process Another</button>
                     <button class="btn-secondary" onclick="viewHistory()">History</button>
                 </div>
@@ -314,8 +316,8 @@
                         Powered by TweekIT, E2B, Docker, and Groq</h3>
                     <div class="partner-logos">
                         <a href="https://tweekit.io" target="_blank" rel="noopener" aria-label="TweekIT">
-                            <img src="/static/assets/logo-white-logo-full-dark-bkg.png" alt="TweekIT logo" loading="lazy"
-                                class="partner-logo">
+                            <img src="/static/assets/logo-white-logo-full-dark-bkg.png" alt="TweekIT logo"
+                                loading="lazy" class="partner-logo">
                         </a>
                         <a href="https://e2b.dev" target="_blank" rel="noopener" aria-label="E2B">
                             <img src="/static/assets/e2b-logo.webp" alt="E2B logo" loading="lazy" class="partner-logo">

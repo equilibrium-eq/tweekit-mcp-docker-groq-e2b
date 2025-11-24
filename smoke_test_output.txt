@@ -1,0 +1,129 @@
+[94m
+============================================================[0m
+[94m🚀 TWEEKIT DEMO SMOKE TEST SUITE[0m
+[94m============================================================
+[0m
+[94m
+============================================================[0m
+[94mTesting: Health Check Endpoint[0m
+[94m============================================================[0m
+[92mStatus: healthy[0m
+[0mTweekIT Creds: ✓[0m
+[0mE2B Key: ✓[0m
+[0mGroq Key: ✓[0m
+[92m✓ Health check PASSED[0m
+[94m
+============================================================[0m
+[94mTesting: PDF → PNG (Web Image Mode)[0m
+[94m============================================================[0m
+[0m  File: test.pdf[0m
+[0m  Mode: preview[0m
+[0m  Output Format: png[0m
+[0m  Groq Model: llama-3.2-90b-vision-preview[0m
+[93m  ⏱️  Time: 18.56s[0m
+[0m  📄 Converted File: ✓[0m
+[0m  🤖 AI Analysis: ✓[0m
+[0m  📊 Model: llama-3.3-70b-versatile[0m
+[0m  📦 Format: PDF → PNG[0m
+[0m  📏 Size: 26.4 KB[0m
+[92m✓ PDF → PNG (Web Image Mode) PASSED[0m
+[94m
+============================================================[0m
+[94mTesting: PDF → PNG (Different Groq Model)[0m
+[94m============================================================[0m
+[0m  File: test.pdf[0m
+[0m  Mode: preview[0m
+[0m  Output Format: png[0m
+[0m  Groq Model: llama-3.3-70b-versatile[0m
+[93m  ⏱️  Time: 14.78s[0m
+[0m  📄 Converted File: ✓[0m
+[0m  🤖 AI Analysis: ✓[0m
+[0m  📊 Model: llama-3.3-70b-versatile[0m
+[0m  📦 Format: PDF → PNG[0m
+[0m  📏 Size: 26.4 KB[0m
+[92m✓ PDF → PNG (Different Groq Model) PASSED[0m
+[94m
+============================================================[0m
+[94mTesting: PNG → PDF[0m
+[94m============================================================[0m
+[0m  File: test.png[0m
+[0m  Mode: extract[0m
+[0m  Output Format: pdf[0m
+[0m  Groq Model: llama-3.2-90b-vision-preview[0m
+[91m✗ FAILED: Markdown extraction is not available for this file yet. Try Auto TweekIT or another export option.[0m
+[91m  Details: Traceback (most recent call last):
+  File "/app/api.py", line 410, in process_file
+    raise Exception(error_msg)
+Exception: Conversion failed.
+Stdout: STEP: Connecting to MCP...
+STEP: Connected, call[0m
+[94m
+============================================================[0m
+[94mTesting: PDF → Markdown (Extract Mode)[0m
+[94m============================================================[0m
+[0m  File: test.pdf[0m
+[0m  Mode: extract[0m
+[0m  Output Format: md[0m
+[0m  Groq Model: llama-3.2-90b-vision-preview[0m
+[93m  ⏱️  Time: 15.49s[0m
+[0m  📄 Converted File: ✓[0m
+[0m  🤖 AI Analysis: ✓[0m
+[0m  📊 Model: llama-3.3-70b-versatile[0m
+[0m  📦 Format: PDF → PDF[0m
+[0m  📏 Size: 29.8 KB[0m
+[92m✓ PDF → Markdown (Extract Mode) PASSED[0m
+[94m
+============================================================[0m
+[94mTesting: PDF (Auto TweekIT Mode)[0m
+[94m============================================================[0m
+[0m  File: test.pdf[0m
+[0m  Mode: auto[0m
+[0m  Output Format: pdf[0m
+[0m  Groq Model: llama-3.2-90b-vision-preview[0m
+[93m  ⏱️  Time: 14.06s[0m
+[0m  📄 Converted File: ✓[0m
+[0m  🤖 AI Analysis: ✓[0m
+[0m  📊 Model: TweekIT Web Optimizer[0m
+[0m  📦 Format: PDF → PNG[0m
+[0m  📏 Size: 26.4 KB[0m
+[92m✓ PDF (Auto TweekIT Mode) PASSED[0m
+[94m
+============================================================[0m
+[94mTesting: PDF → JPG (Web Image)[0m
+[94m============================================================[0m
+[0m  File: test.pdf[0m
+[0m  Mode: preview[0m
+[0m  Output Format: jpg[0m
+[0m  Groq Model: llama-3.2-90b-vision-preview[0m
+[93m  ⏱️  Time: 18.04s[0m
+[0m  📄 Converted File: ✓[0m
+[0m  🤖 AI Analysis: ✓[0m
+[0m  📊 Model: llama-3.3-70b-versatile[0m
+[0m  📦 Format: PDF → JPG[0m
+[0m  📏 Size: 28.8 KB[0m
+[92m✓ PDF → JPG (Web Image) PASSED[0m
+[94m
+============================================================[0m
+[94mTesting: PDF → GIF (Web Image)[0m
+[94m============================================================[0m
+[0m  File: test.pdf[0m
+[0m  Mode: preview[0m
+[0m  Output Format: gif[0m
+[0m  Groq Model: llama-3.2-90b-vision-preview[0m
+[93m  ⏱️  Time: 21.10s[0m
+[0m  📄 Converted File: ✓[0m
+[0m  🤖 AI Analysis: ✓[0m
+[0m  📊 Model: llama-3.3-70b-versatile[0m
+[0m  📦 Format: PDF → GIF[0m
+[0m  📏 Size: 7.6 KB[0m
+[92m✓ PDF → GIF (Web Image) PASSED[0m
+[94m
+============================================================[0m
+[94m📊 TEST SUMMARY[0m
+[94m============================================================[0m
+[0mTotal Tests: 8[0m
+[92m✓ Passed: 7[0m
+[91m✗ Failed: 1[0m
+[92mSuccess Rate: 87.5%[0m
+[94m============================================================
+[0m

@@ -413,7 +413,6 @@ async function processFile() {
         setTimeout(() => {
             showResults(result);
         }, 500);
-
     } catch (error) {
         console.error('Processing error:', error);
 
@@ -426,40 +425,149 @@ async function processFile() {
     }
 }
 
-function updateStep(stepNumber, status, timeText = '') {
-    const step = document.getElementById(`step${stepNumber}`);
-    const icon = document.getElementById(`icon${stepNumber}`);
-    const time = document.getElementById(`time${stepNumber}`);
+// Secure Download Timer Logic
+let downloadTimerInterval = null;
+const DOWNLOAD_TIMEOUT_SECONDS = 30;
+let isMuted = false;
 
-    // Remove all status classes
-    step.classList.remove('active', 'complete');
-    icon.classList.remove('active', 'complete');
-
-    // Add new status
-    if (status === 'active') {
-        step.classList.add('active');
-        icon.classList.add('active');
-        icon.innerHTML = '<div class="spinner"></div>';
-    } else if (status === 'complete') {
-        step.classList.add('complete');
-        icon.classList.add('complete');
-        icon.textContent = '✓';
-    } else {
-        icon.textContent = stepNumber;
-    }
-
-    // Update time text
-    if (time) {
-        time.textContent = timeText || '';
+function toggleMute() {
+    isMuted = !isMuted;
+    const btn = document.getElementById('muteBtn');
+    if (btn) {
+        btn.textContent = isMuted ? '🔇' : '🔊';
+        btn.style.opacity = isMuted ? '0.7' : '1';
     }
 }
 
-function resetProgress() {
-    resetStepTitles();
-    for (let i = 1; i <= 3; i++) {
-        updateStep(i, 'pending', '');
-        document.getElementById(`icon${i}`).textContent = i;
+// Simple "tick" sound (base64 encoded short beep)
+const TICK_SOUND = "data:audio/wav;base64,UklGRl9vT1BXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"; // Placeholder, will use AudioContext for better sound
+
+function playTickSound() {
+    if (isMuted) return;
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
+
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.1);
+        }
+    } catch (e) {
+        console.error("Audio play failed", e);
     }
+}
+
+function playPurgeSound() {
+    if (isMuted) return;
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            // Bell-like tone (higher pitch, long decay)
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1200, ctx.currentTime);
+
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.01); // Sharp attack
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5); // Long decay
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 1.5);
+        }
+    } catch (e) {
+        console.error("Audio play failed", e);
+    }
+}
+
+function startDownloadTimer() {
+    const timerEl = document.getElementById('downloadTimer');
+    if (!timerEl) return;
+
+    // Reset state
+    clearInterval(downloadTimerInterval);
+    timerEl.style.display = 'block';
+    timerEl.classList.remove('urgent');
+
+    let timeLeft = DOWNLOAD_TIMEOUT_SECONDS;
+
+    function updateDisplay() {
+        timerEl.textContent = `⚠️ Secure Download: ${timeLeft}s remaining`;
+
+        if (timeLeft <= 10) {
+            timerEl.classList.add('urgent');
+        }
+
+        if (timeLeft <= 5 && timeLeft > 0) {
+            playTickSound();
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(downloadTimerInterval);
+            playPurgeSound(); // Play "ping" on purge
+            purgeFile();
+
+            // Scroll to top after purge (wait for sound to start)
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 1000);
+        }
+
+        timeLeft--;
+    }
+
+    // Initial call
+    updateDisplay();
+
+    // Start interval
+    downloadTimerInterval = setInterval(updateDisplay, 1000);
+}
+
+function purgeFile() {
+    // Clear data
+    if (currentResult) {
+        currentResult.converted_file = null;
+    }
+
+    // Update UI
+    const timerEl = document.getElementById('downloadTimer');
+    if (timerEl) {
+        timerEl.textContent = "🔒 File Purged from Memory";
+        timerEl.style.color = "#9ca3af";
+        timerEl.style.borderColor = "#4b5563";
+        timerEl.style.background = "rgba(75, 85, 99, 0.1)";
+        timerEl.classList.remove('urgent');
+    }
+
+    // Disable download buttons
+    const downloadButtons = document.querySelectorAll('#resultsSection button.btn-primary');
+    downloadButtons.forEach(btn => {
+        if (btn.textContent.includes('Download')) {
+            btn.disabled = true;
+            btn.classList.add('purged');
+            btn.innerHTML = '🔒 Download Unavailable (Purged)';
+        }
+    });
+
+    // Show notification
+    showPurgeNotification();
 }
 
 function showResults(result) {
@@ -474,6 +582,14 @@ function showResults(result) {
 
     // Show results
     document.getElementById('resultsSection').style.display = 'block';
+
+    // Reset download button state
+    const downloadButtons = document.querySelectorAll('#resultsSection button.btn-primary');
+    downloadButtons.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('purged');
+        btn.innerHTML = '📥 Download File';
+    });
 
     // Update metrics
     document.getElementById('conversionFormat').textContent =
@@ -507,10 +623,12 @@ function showResults(result) {
     document.getElementById('aiModel').textContent = `Model: ${modelDisplay}`;
     document.getElementById('aiAnalysis').textContent = result.analysis?.summary || 'Analysis unavailable.';
 
-    // Scroll back to upload area after a brief delay
+    // Scroll to results section immediately
     setTimeout(() => {
-        document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 500);
+        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Start the secure timer
+        startDownloadTimer();
+    }, 100);
 }
 
 function showError(message, details = null, meta = null) {
@@ -552,6 +670,16 @@ function showError(message, details = null, meta = null) {
 }
 
 function reset() {
+    playPurgeSound(); // Play ping on reset
+
+    // Security: Strictly purge data
+    if (currentResult) {
+        currentResult = null;
+    }
+    if (downloadTimerInterval) {
+        clearInterval(downloadTimerInterval);
+    }
+
     selectedFile = null;
     selectedGroqModelLabel = null;
     fileInput.value = '';

@@ -281,6 +281,17 @@ async def process_file(request: ProcessRequest):
                 sandbox.run_code("!pip install -q fastmcp nest-asyncio")
                 print("Dependencies installed successfully")
 
+                # OPTIMIZATION: Upload file directly to sandbox filesystem
+                # This avoids the 1MB payload limit of run_code by not embedding the base64 string
+                print(f"Uploading {len(request.file_base64)} bytes of base64 data to sandbox...")
+                try:
+                    file_bytes = base64.b64decode(request.file_base64)
+                    sandbox.files.write("/tmp/input_file", file_bytes)
+                    print("File uploaded successfully to /tmp/input_file")
+                except Exception as e:
+                    print(f"Error uploading file to sandbox: {e}")
+                    raise HTTPException(status_code=500, detail=f"Failed to upload file to sandbox: {str(e)}")
+
                 # Execute conversion via MCP
                 code = f"""
 import asyncio
@@ -290,6 +301,7 @@ import base64
 from pathlib import Path
 
 OUTPUT_PATH = "/tmp/tweekit_output.bin"
+INPUT_PATH = "/tmp/input_file"
 
 def store_data(data):
     if isinstance(data, bytes):
@@ -308,13 +320,19 @@ def store_data(data):
 
 async def convert():
     try:
+        # Read input file and encode to base64 for MCP tool
+        print(f"Reading input file from {{INPUT_PATH}}...")
+        input_bytes = Path(INPUT_PATH).read_bytes()
+        input_base64 = base64.b64encode(input_bytes).decode('utf-8')
+        print(f"Prepared {{len(input_base64)}} bytes of base64 data for MCP")
+
         print("STEP: Connecting to MCP...")
         async with Client('{TUNNEL_URL}') as client:
             print("STEP: Connected, calling convert tool...")
             result = await client.call_tool('convert', {{
                 'apiKey': '{TWEEKIT_API_KEY}',
                 'apiSecret': '{TWEEKIT_API_SECRET}',
-                'blob': '{request.file_base64}',
+                'blob': input_base64,
                 'inext': '{file_ext}',
                 'outfmt': '{output_format}'
             }})
@@ -477,11 +495,22 @@ if result:
                 # Enhanced analysis for all conversions highlighting agentic workflow benefits
                 response = groq_client.chat.completions.create(
                     model=model,
-                    messages=[{
-                        "role": "user",
-                        "content": f"I just converted a {original_ext.upper()} file to {output_format.upper()} format ({converted_size} bytes) using TweekIT. Provide a 2-3 sentence analysis that: 1) Explains what this conversion enables for AI/agentic workflows, 2) Mentions how services like Freepik, Heygen, or other AI tools can now ingest this format without errors, 3) Emphasizes TweekIT makes entire asset libraries available to AI workflows."
-                    }],
-                    temperature=0.7,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are an expert in file formats and AI data ingestion. Your goal is to explain the technical benefits of file conversion for agentic workflows based strictly on the file types involved."
+                        },
+                        {
+                            "role": "user",
+                            "content": f"""I converted a {original_ext.upper()} file to {output_format.upper()} format ({converted_size} bytes).
+Analyze this specific conversion:
+1. What are the inherent limitations of the original {original_ext.upper()} format for AI?
+2. How does the {output_format.upper()} version technically solve this (e.g., vectorization, OCR, rasterization)?
+3. List 2 concrete, factual use cases for this specific data type in an automated pipeline.
+Keep it concise (2-3 sentences). Do NOT name-drop specific 3rd party tools unless they are industry standards for this specific file type."""
+                        }
+                    ],
+                    temperature=0.5, # Lower temperature for more factual output
                     max_tokens=200
                 )
 

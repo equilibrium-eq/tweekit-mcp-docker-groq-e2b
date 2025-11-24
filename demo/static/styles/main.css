@@ -1193,3 +1193,46 @@
         width: 100%;
     }
 }
+
+/* Secure Download Timer */
+.download-timer {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #a5b4fc;
+    padding: 10px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.download-timer.urgent {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Purged State */
+.btn-primary.purged {
+    background: #374151 !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+    border: 1px solid #4b5563 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn-primary.purged:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
