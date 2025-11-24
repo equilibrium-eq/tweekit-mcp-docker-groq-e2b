@@ -295,6 +295,37 @@ async function processFile() {
     };
 
     try {
+        // Determine output format and conversion mode based on selection
+        let outputFormat = 'pdf';
+        let conversionMode = 'preview';  // Backend expects 'preview' or 'extract'
+        let pageNumber = 1;
+
+        if (modeValue === 'auto') {
+            if (autoStrategy) {
+                outputFormat = autoStrategy.outputFormat;
+                conversionMode = autoStrategy.conversionMode;
+                pageNumber = autoStrategy.pageNumber ?? 1;
+            } else {
+                conversionMode = 'auto';
+                outputFormat = 'pdf';  // Fallback
+            }
+        } else if (modeValue === 'image') {
+            // Web ready image mode - save as desired output format
+            const imageFormat = document.getElementById('imageFormat')?.value || 'png';
+            const pageInput = document.getElementById('pageNumber')?.value || '1';
+            outputFormat = imageFormat;
+            conversionMode = 'preview';
+            pageNumber = parseInt(pageInput) || 1;  // Default to page 1 if invalid
+        } else if (modeValue === 'extract') {
+            // Text extraction mode
+            outputFormat = 'md';
+            conversionMode = 'extract';
+        } else if (modeValue === 'pdf') {
+            // PDF output mode
+            outputFormat = 'pdf';
+            conversionMode = 'extract';  // Full document
+        }
+
         // Step 1: Show E2B sandbox creation and file preparation
         timings.uploadStart = Date.now();
         updateStep(1, 'active', 'Securely encrypting & uploading file...');
