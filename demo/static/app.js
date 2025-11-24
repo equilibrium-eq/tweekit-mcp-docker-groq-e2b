@@ -691,6 +691,29 @@ function reset() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// Agentic Prompt Rotation
+const AGENTIC_EXAMPLES = [
+    "e.g. TweekIT and give me back a .webp...",
+    "e.g. Extract text and summarize for Discord...",
+    "e.g. Convert to PDF and email to team...",
+    "e.g. Analyze image and generate caption...",
+    "e.g. TweekIT to JSON for database ingest..."
+];
+
+function startAgenticPromptRotation() {
+    const input = document.getElementById('agenticInput');
+    if (!input) return;
+
+    let index = 0;
+    setInterval(() => {
+        input.setAttribute('placeholder', AGENTIC_EXAMPLES[index]);
+        index = (index + 1) % AGENTIC_EXAMPLES.length;
+    }, 3000);
+}
+
+// Start rotation on load
+document.addEventListener('DOMContentLoaded', startAgenticPromptRotation);
+
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();

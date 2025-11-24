@@ -296,7 +296,7 @@
                         🚀 Agentic Handoff: What should AI do next?
                     </label>
                     <div style="display: flex; gap: 10px;">
-                        <input type="text" placeholder="e.g. TweekIT and give me back a .webp..."
+                        <input type="text" id="agenticInput" placeholder="e.g. TweekIT and give me back a .webp..."
                             style="flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white;"
                             disabled>
                         <button class="btn-secondary" style="opacity: 0.5; cursor: not-allowed;" disabled>Run
@@ -449,6 +449,12 @@
             </div>
         </div>
     </footer>
+
+    <!-- Version Number -->
+    <div
+        style="position: fixed; bottom: 10px; right: 10px; color: rgba(255,255,255,0.3); font-size: 11px; font-family: monospace; pointer-events: none; z-index: 9999;">
+        v0.5.1
+    </div>
 
     <script src="/static/app.js"></script>
     <script>
