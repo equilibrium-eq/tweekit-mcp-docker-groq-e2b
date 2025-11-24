@@ -250,7 +250,7 @@ async function processFile() {
 
     // Smooth scroll to progress section
     setTimeout(() => {
-        document.getElementById('progressSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('progressSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 100);
 
     // Reset progress
