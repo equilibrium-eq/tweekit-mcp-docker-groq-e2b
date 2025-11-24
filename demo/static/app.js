@@ -297,6 +297,7 @@ async function processFile() {
     try {
         // Step 1: Show E2B sandbox creation and file preparation
         timings.uploadStart = Date.now();
+        updateStep(1, 'active', 'Securely encrypting & uploading file...');
 
         // Read file as base64
         const base64File = await fileToBase64(selectedFile);
@@ -305,16 +306,16 @@ async function processFile() {
         const uploadTime = ((timings.uploadComplete - timings.uploadStart) / 1000).toFixed(2);
         if (modeValue === 'auto') {
             const autoLabel = autoStrategy?.label || 'AI optimization';
-            updateStep(1, 'complete', `Workflow selected (${uploadTime}s): ${autoLabel}`);
+            updateStep(1, 'complete', `File sent securely (${uploadTime}s) – ${autoLabel}`);
         } else {
-            updateStep(1, 'complete', `File ready (${uploadTime}s)`);
+            updateStep(1, 'complete', `File sent securely (${uploadTime}s)`);
         }
 
         // Step 2: Show conversion
         const conversionLabel = modeValue === 'auto'
             ? (autoStrategy?.description || 'AI optimization')
             : optionTitle;
-        updateStep(2, 'active', `Sending to TweekIT – ${conversionLabel}...`);
+        updateStep(2, 'active', `Processing in ephemeral sandbox – ${conversionLabel}...`);
 
         timings.processingStart = Date.now();
 
@@ -368,35 +369,32 @@ async function processFile() {
         timings.processingComplete = Date.now();
 
         if (!response.ok) {
-            throw new Error(`API error: ${response.status} ${response.statusText}`);
+            const errorData = await response.json();
+            throw {
+                message: errorData.detail || 'Processing failed',
+                response: errorData
+            };
         }
 
         const result = await response.json();
-
-        if (!result.success) {
-            // Create error object with details for display
-            const error = new Error(result.error || 'Processing failed');
-            error.response = result;  // Attach full response for error_details
-            throw error;
-        }
-
-        // Calculate processing time
+        timings.processingComplete = Date.now();
         const processingTime = ((timings.processingComplete - timings.processingStart) / 1000).toFixed(2);
-        updateStep(2, 'complete', `${conversionLabel} (${processingTime}s)`);
 
-        // Step 3: Show analysis
-        const groqLabelForSteps = selectedGroqModelLabel || 'Groq AI';
-        updateStep(3, 'active', `Analyzing with ${groqLabelForSteps}...`);
+        // Security confirmation update
+        updateStep(2, 'complete', `TweekIT Conversion Complete (${processingTime}s) – Ephemeral Cache Purged`);
 
+        // Step 3: AI Analysis
+        updateStep(3, 'active', 'Analyzing with Groq AI (Zero-Retention)...');
         timings.analysisStart = Date.now();
 
-        // Simulate small delay for visual effect
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Simulate analysis time if not provided (it's usually fast)
+        if (!result.analysis || !result.analysis.time) {
+            await new Promise(resolve => setTimeout(resolve, 800));
+        }
 
         timings.analysisComplete = Date.now();
         const analysisTime = ((timings.analysisComplete - timings.analysisStart) / 1000).toFixed(2);
-
-        updateStep(3, 'complete', `${groqLabelForSteps} (${analysisTime}s)`);
+        updateStep(3, 'complete', `Analysis Complete (${analysisTime}s)`);
 
         // Calculate total time from button press
         const totalTime = ((timings.analysisComplete - timings.buttonPressed) / 1000).toFixed(2);

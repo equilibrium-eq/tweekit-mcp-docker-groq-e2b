@@ -143,6 +143,7 @@
                                 <select id="imageFormat" class="control-select">
                                     <option value="png">PNG</option>
                                     <option value="jpg">JPG</option>
+                                    <option value="webp">WEBP</option>
                                     <option value="gif">GIF</option>
                                 </select>
                                 <input type="number" id="pageNumber" value="1" min="1" class="control-input"
@@ -285,6 +286,24 @@
                     </div>
                     <div class="ai-content" id="aiAnalysis">
                         --
+                    </div>
+                </div>
+
+                <!-- Agentic Action Prompt -->
+                <div class="agentic-prompt" style="margin-top: 20px; margin-bottom: 20px;">
+                    <label
+                        style="display: block; color: #a5b4fc; font-size: 14px; font-weight: 600; margin-bottom: 8px;">
+                        🚀 Agentic Handoff: What should AI do next?
+                    </label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" placeholder="e.g. TweekIT and give me back a .webp..."
+                            style="flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white;"
+                            disabled>
+                        <button class="btn-secondary" style="opacity: 0.5; cursor: not-allowed;" disabled>Run
+                            Agent</button>
+                    </div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 6px;">
+                        * Agentic chaining available in Enterprise Edition
                     </div>
                 </div>
 
