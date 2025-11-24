@@ -299,11 +299,65 @@ async function processFile() {
         timings.uploadStart = Date.now();
         updateStep(1, 'active', 'Securely encrypting & uploading file...');
 
-        // Read file as base64
-        const base64File = await fileToBase64(selectedFile);
+        // Create FormData for multipart upload
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('output_format', outputFormat);
+        formData.append('conversion_mode', conversionMode);
+        formData.append('page_number', pageNumber.toString());
+        formData.append('groq_model', groqModelValue);
+        formData.append('use_vision', 'false'); // Default for now
+
+        // Use XHR for upload progress
+        const xhr = new XMLHttpRequest();
+
+        // Promise wrapper for XHR
+        const uploadPromise = new Promise((resolve, reject) => {
+            xhr.upload.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    updateStep(1, 'active', `Securely encrypting & uploading file... ${percentComplete}%`);
+
+                    // Update progress bar if it exists (we'll add this to HTML next)
+                    const progressBar = document.getElementById('uploadProgressBar');
+                    if (progressBar) {
+                        progressBar.style.width = `${percentComplete}%`;
+                        progressBar.style.display = 'block';
+                    }
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    let errorMsg = 'Upload failed';
+                    try {
+                        const err = JSON.parse(xhr.responseText);
+                        errorMsg = err.detail || errorMsg;
+                    } catch (e) { }
+                    reject({ message: errorMsg, status: xhr.status });
+                }
+            });
+
+            xhr.addEventListener('error', () => reject({ message: 'Network error during upload' }));
+            xhr.addEventListener('abort', () => reject({ message: 'Upload aborted' }));
+
+            xhr.open('POST', '/api/upload');
+            xhr.send(formData);
+        });
+
+        const result = await uploadPromise;
 
         timings.uploadComplete = Date.now();
         const uploadTime = ((timings.uploadComplete - timings.uploadStart) / 1000).toFixed(2);
+
+        // Hide progress bar after upload
+        const progressBar = document.getElementById('uploadProgressBar');
+        if (progressBar) {
+            progressBar.style.display = 'none';
+        }
+
         if (modeValue === 'auto') {
             const autoLabel = autoStrategy?.label || 'AI optimization';
             updateStep(1, 'complete', `File sent securely (${uploadTime}s) – ${autoLabel}`);
@@ -319,65 +373,18 @@ async function processFile() {
 
         timings.processingStart = Date.now();
 
-        // Determine output format and conversion mode based on selection
-        let outputFormat = 'pdf';
-        let conversionMode = 'preview';  // Backend expects 'preview' or 'extract'
-        let pageNumber = 1;
-
-        if (modeValue === 'auto') {
-            if (autoStrategy) {
-                outputFormat = autoStrategy.outputFormat;
-                conversionMode = autoStrategy.conversionMode;
-                pageNumber = autoStrategy.pageNumber ?? 1;
-            } else {
-                conversionMode = 'auto';
-                outputFormat = 'pdf';  // Fallback
-            }
-        } else if (modeValue === 'image') {
-            // Web ready image mode - save as desired output format
-            const imageFormat = document.getElementById('imageFormat')?.value || 'png';
-            const pageInput = document.getElementById('pageNumber')?.value || '1';
-            outputFormat = imageFormat;
-            conversionMode = 'preview';
-            pageNumber = parseInt(pageInput) || 1;  // Default to page 1 if invalid
-        } else if (modeValue === 'extract') {
-            // Text extraction mode
-            outputFormat = 'md';
-            conversionMode = 'extract';
-        } else if (modeValue === 'pdf') {
-            // PDF output mode
-            outputFormat = 'pdf';
-            conversionMode = 'extract';  // Full document
-        }
-
-        // Call API
-        const response = await fetch('/api/process', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                file_base64: base64File.split(',')[1], // Remove data URL prefix
-                filename: selectedFile.name,
-                output_format: outputFormat,
-                groq_model: groqModelValue,
-                conversion_mode: conversionMode,
-                page_number: pageNumber
-            })
-        });
+        // Result is already parsed from XHR response
+        // Skip the fetch call since we used /api/upload which returns the same ProcessResponse structure
 
         timings.processingComplete = Date.now();
 
-        if (!response.ok) {
-            const errorData = await response.json();
+        if (!result.success) {
             throw {
-                message: errorData.detail || 'Processing failed',
-                response: errorData
+                message: result.error || 'Processing failed',
+                response: result
             };
         }
 
-        const result = await response.json();
-        timings.processingComplete = Date.now();
         const processingTime = ((timings.processingComplete - timings.processingStart) / 1000).toFixed(2);
 
         // Security confirmation update
