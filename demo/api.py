@@ -274,9 +274,12 @@ async def process_file(request: ProcessRequest):
             used_local_conversion = True
 
         if not used_local_conversion:
-            with Sandbox.create(api_key=E2B_API_KEY, timeout=120) as sandbox:
+            # Increase timeout to 300 seconds (5 minutes) to handle large files and slow conversions
+            with Sandbox.create(api_key=E2B_API_KEY, timeout=300) as sandbox:
                 # Install FastMCP and nest_asyncio in sandbox
+                print("Installing dependencies in E2B sandbox...")
                 sandbox.run_code("!pip install -q fastmcp nest-asyncio")
+                print("Dependencies installed successfully")
 
                 # Execute conversion via MCP
                 code = f"""
@@ -393,7 +396,24 @@ if result:
     print("ARTIFACT_RETURNED")
 """
 
-                conversion_result = sandbox.run_code(code)
+                print("Executing conversion code in E2B sandbox...")
+                try:
+                    conversion_result = sandbox.run_code(code)
+                except Exception as e:
+                    error_type = type(e).__name__
+                    error_msg = str(e)
+                    print(f"ERROR: E2B execution failed with {error_type}: {error_msg}")
+
+                    # Provide helpful error messages based on error type
+                    if "UnexpectedEndOfExecution" in error_type or "timeout" in error_msg.lower():
+                        raise Exception(
+                            f"Conversion timed out. The file may be too large or the conversion is taking too long. "
+                            f"Please try with a smaller file or simpler format. Error: {error_msg}"
+                        )
+                    else:
+                        raise Exception(f"E2B sandbox execution failed: {error_msg}")
+
+                print("Code execution completed, processing results...")
 
                 # Check for conversion success (E2B SDK uses result.logs.stdout)
                 stdout = conversion_result.logs.stdout if conversion_result and conversion_result.logs else []
@@ -402,6 +422,8 @@ if result:
                 # Join stdout list into string
                 stdout_str = ''.join(stdout) if isinstance(stdout, list) else stdout
                 stderr_str = ''.join(stderr) if isinstance(stderr, list) else stderr
+
+                print(f"DEBUG: Stdout length: {len(stdout_str)}, contains SUCCESS: {'SUCCESS' in stdout_str}")
 
                 if "SUCCESS" not in stdout_str:
                     error_msg = f"Conversion failed.\nStdout: {stdout_str}\nStderr: {stderr_str}"
