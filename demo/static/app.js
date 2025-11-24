@@ -461,6 +461,42 @@ async function processFile() {
     }
 }
 
+function updateStep(stepNumber, status, timeText = '') {
+    const step = document.getElementById(`step${stepNumber}`);
+    const icon = document.getElementById(`icon${stepNumber}`);
+    const time = document.getElementById(`time${stepNumber}`);
+
+    // Remove all status classes
+    step.classList.remove('active', 'complete');
+    icon.classList.remove('active', 'complete');
+
+    // Add new status
+    if (status === 'active') {
+        step.classList.add('active');
+        icon.classList.add('active');
+        icon.innerHTML = '<div class="spinner"></div>';
+    } else if (status === 'complete') {
+        step.classList.add('complete');
+        icon.classList.add('complete');
+        icon.textContent = '✓';
+    } else {
+        icon.textContent = stepNumber;
+    }
+
+    // Update time text
+    if (time) {
+        time.textContent = timeText || '';
+    }
+}
+
+function resetProgress() {
+    resetStepTitles();
+    for (let i = 1; i <= 3; i++) {
+        updateStep(i, 'pending', '');
+        document.getElementById(`icon${i}`).textContent = i;
+    }
+}
+
 // Secure Download Timer Logic
 let downloadTimerInterval = null;
 const DOWNLOAD_TIMEOUT_SECONDS = 30;
