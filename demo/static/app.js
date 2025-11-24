@@ -540,6 +540,12 @@ function startDownloadTimer() {
 }
 
 function purgeFile() {
+    // Stop the timer immediately
+    if (downloadTimerInterval) {
+        clearInterval(downloadTimerInterval);
+        downloadTimerInterval = null;
+    }
+
     // Clear data
     if (currentResult) {
         currentResult.converted_file = null;
@@ -553,6 +559,11 @@ function purgeFile() {
         timerEl.style.borderColor = "#4b5563";
         timerEl.style.background = "rgba(75, 85, 99, 0.1)";
         timerEl.classList.remove('urgent');
+
+        // After showing purge message, reset to clean state
+        setTimeout(() => {
+            reset();
+        }, 3000);
     }
 
     // Disable download buttons
@@ -576,8 +587,9 @@ function showResults(result) {
     // Save to history
     saveToHistory(result);
 
-    // Hide progress
+    // Hide progress and upload section
     document.getElementById('progressSection').style.display = 'none';
+    document.getElementById('uploadSection').style.display = 'none'; // Hide upload area
 
     // Show results
     document.getElementById('resultsSection').style.display = 'block';
@@ -669,8 +681,6 @@ function showError(message, details = null, meta = null) {
 }
 
 function reset() {
-    playPurgeSound(); // Play ping on reset
-
     // Security: Strictly purge data
     if (currentResult) {
         currentResult = null;
