@@ -201,6 +201,7 @@ async def process_file(request: ProcessRequest):
     import time
     start_time = time.time()
     error_code: Optional[str] = None
+    original_ext = "unknown"  # Initialize to prevent UnboundLocalError
 
     try:
         # Validate credentials
