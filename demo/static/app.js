@@ -500,74 +500,6 @@ function resetProgress() {
 // Secure Download Timer Logic
 let downloadTimerInterval = null;
 const DOWNLOAD_TIMEOUT_SECONDS = 30;
-let isMuted = false;
-
-function toggleMute() {
-    isMuted = !isMuted;
-    const btn = document.getElementById('muteBtn');
-    if (btn) {
-        btn.textContent = isMuted ? '🔇' : '🔊';
-        btn.style.opacity = isMuted ? '0.7' : '1';
-    }
-}
-
-// Simple "tick" sound (base64 encoded short beep)
-const TICK_SOUND = "data:audio/wav;base64,UklGRl9vT1BXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"; // Placeholder, will use AudioContext for better sound
-
-function playTickSound() {
-    if (isMuted) return;
-    try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
-
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.start();
-            osc.stop(ctx.currentTime + 0.1);
-        }
-    } catch (e) {
-        console.error("Audio play failed", e);
-    }
-}
-
-function playPurgeSound() {
-    if (isMuted) return;
-    try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            // Bell-like tone (higher pitch, long decay)
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1200, ctx.currentTime);
-
-            gain.gain.setValueAtTime(0, ctx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.01); // Sharp attack
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5); // Long decay
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.start();
-            osc.stop(ctx.currentTime + 1.5);
-        }
-    } catch (e) {
-        console.error("Audio play failed", e);
-    }
-}
 
 function startDownloadTimer() {
     const timerEl = document.getElementById('downloadTimer');
@@ -587,16 +519,11 @@ function startDownloadTimer() {
             timerEl.classList.add('urgent');
         }
 
-        if (timeLeft <= 5 && timeLeft > 0) {
-            playTickSound();
-        }
-
         if (timeLeft <= 0) {
             clearInterval(downloadTimerInterval);
-            playPurgeSound(); // Play "ping" on purge
             purgeFile();
 
-            // Scroll to top after purge (wait for sound to start)
+            // Scroll to top after purge
             setTimeout(() => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 1000);
