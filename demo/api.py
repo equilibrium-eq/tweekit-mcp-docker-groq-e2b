@@ -420,7 +420,9 @@ if result:
 
                 print("Executing conversion code in E2B sandbox...")
                 try:
-                    conversion_result = sandbox.run_code(code)
+                    # Set timeout to 240 seconds (4 minutes) to allow for large file conversions
+                    # This is slightly less than the sandbox timeout of 300s to ensure proper cleanup
+                    conversion_result = sandbox.run_code(code, timeout=240)
                 except Exception as e:
                     error_type = type(e).__name__
                     error_msg = str(e)
@@ -428,12 +430,15 @@ if result:
 
                     # Provide helpful error messages based on error type
                     if "UnexpectedEndOfExecution" in error_type or "timeout" in error_msg.lower():
-                        raise Exception(
-                            f"Conversion timed out. The file may be too large or the conversion is taking too long. "
-                            f"Please try with a smaller file or simpler format. Error: {error_msg}"
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"Conversion timed out or E2B connection closed unexpectedly. The file may be too large or the conversion is taking too long. Please try with a smaller file or simpler format."
                         )
                     else:
-                        raise Exception(f"E2B sandbox execution failed: {error_msg}")
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"E2B sandbox execution failed: {error_msg}"
+                        )
 
                 print("Code execution completed, processing results...")
 
