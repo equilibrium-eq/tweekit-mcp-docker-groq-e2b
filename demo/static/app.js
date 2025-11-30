@@ -589,10 +589,7 @@ function showResults(result) {
         btn.innerHTML = '📥 Download File';
     });
 
-    // Update metrics
-    document.getElementById('conversionFormat').textContent =
-        `${result.conversion.input_format} → ${result.conversion.output_format}`;
-    document.getElementById('fileSize').textContent = result.conversion.size;
+
 
     // Update timing with detailed breakdown
     // Hide progress section and show results (spinner will be displayed via progressSection)
