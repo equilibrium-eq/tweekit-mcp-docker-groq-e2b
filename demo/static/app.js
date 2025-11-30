@@ -592,10 +592,7 @@ function showResults(result) {
 
 
     // Update timing with detailed breakdown
-    // Hide progress section and show results (spinner will be displayed via progressSection)
-    document.getElementById('progressSection').style.display = 'none';
-    // Show results
-    showResults(result);
+
 
     // Update AI analysis
     const analysisModel = result.analysis?.model;
