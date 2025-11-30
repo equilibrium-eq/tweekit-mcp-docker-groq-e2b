@@ -14,20 +14,36 @@ echo "   Project: $PROJECT_ID"
 echo "   Region: $REGION"
 echo ""
 
+# Auto-load environment variables from .envrc if it exists
+# This prevents the recurring issue of missing API keys
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+ENVRC_PATH="$PROJECT_ROOT/.envrc"
+
+if [ -f "$ENVRC_PATH" ]; then
+    echo "📋 Loading environment variables from .envrc..."
+    # Source the .envrc file, but filter out non-export lines and echo statements
+    set -a  # Automatically export all variables
+    source "$ENVRC_PATH" 2>/dev/null || true
+    set +a
+    echo "✅ Environment variables loaded"
+    echo ""
+else
+    echo "⚠️  No .envrc file found at $ENVRC_PATH"
+    echo ""
+fi
+
 # Check if secrets are set
 if [ -z "$TWEEKIT_API_KEY" ] || [ -z "$TWEEKIT_API_SECRET" ] || [ -z "$E2B_API_KEY" ] || [ -z "$GROQ_API_KEY" ]; then
-    echo "⚠️  WARNING: Environment variables not fully set!"
-    echo "   Make sure these are set:"
+    echo "❌ ERROR: Required environment variables are missing!"
+    echo "   Make sure these are set in .envrc:"
     echo "   - TWEEKIT_API_KEY"
     echo "   - TWEEKIT_API_SECRET"
     echo "   - E2B_API_KEY"
     echo "   - GROQ_API_KEY"
     echo ""
-    read -p "Continue anyway? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
+    echo "   Create a .envrc file in the project root with these variables."
+    exit 1
 fi
 
 # Build environment variables string
