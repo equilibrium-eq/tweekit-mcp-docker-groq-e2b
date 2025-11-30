@@ -192,7 +192,6 @@ function hardRefresh() {
 // Check for updates on load and every 5 minutes
 checkForUpdates();
 setInterval(checkForUpdates, 5 * 60 * 1000);
-setInterval(checkForUpdates, 5 * 60 * 1000);
 
 // File upload handling
 const fileInput = document.getElementById('fileInput');
